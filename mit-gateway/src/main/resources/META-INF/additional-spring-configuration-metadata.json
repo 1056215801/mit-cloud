@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "spring.cloud.gateway.locator.enabled",
+      "type": "java.lang.String",
+      "description": "Description for spring.cloud.gateway.locator.enabled."
+  }
+] }

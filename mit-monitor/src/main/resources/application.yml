@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: monitor
+  security:
+    user:
+      # spring boot admin登录账号密码
+      name: admin
+      password: mit123456
+
+server:
+  port: 8711
+
+eureka:
+  instance:
+    metadata-map:
+      # SpringBootAdmin本身作为一个Eureka客户端被发现，这里由于SpringBootAdmin需要进行登录
+      # 因此，此处配置SpringBootAdmin登录时使用的用户名密码
+      # 当这个服务成功注册到 Eureka 上，Spring Boot Admin 就会取拿到这个 instance，进而拿到 metadataMap 里的属性，然后放入请求头，向此服务发送请求
+      user.name: ${spring.security.user.name}
+      user.password: ${spring.security.user.password}
+  client:
+    service-url:
+      # eureka-server的地址，这里开启了身份验证，下面用户名密码是Eureka服务端开启认证的用户密码
+      defaultZone: http://${eureka-server-user:admin}:${eureka-server-password:123456}@${eureka-server-host:192.168.1.222}:${eureka-server-port:8761}/eureka/
+
+# 监控端口
+management:
+  endpoint:
+    shutdown:
+      enabled: true #开启端点
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*" #开启所有接口
+

@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: user-center
+
+server:
+  port: 8770
+
+
+eureka:
+  client:
+    service-url:
+      # eureka-server的地址，这里开启了身份验证
+      defaultZone: http://admin:123456@localhost:8761/eureka/
+
+# 监控端口
+management:
+  endpoint:
+    shutdown:
+      enabled: true #开启端点
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*" #开启所有接口
+

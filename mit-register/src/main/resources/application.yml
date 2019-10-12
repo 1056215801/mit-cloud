@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: eureka-server
+  security:
+    # 开启eureka认证
+    user:
+      name: admin
+      password: mit123456
+
+server:
+  port: 8761
+
+eureka:
+  instance:
+    hostname: localhost
+    statusPageUrlPath: /actuator/info
+    healthCheckUrlPath: /actuator/health
+  client:
+    # eureka-server自己是服务器，不注册
+    # register-with-eureka不需要注册到自己
+    register-with-eureka: false
+    # 不需要从从服务获取注册信息
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${spring.security.user.name}:${spring.security.user.password}@${eureka.instance.hostname}:${server.port}/eureka/

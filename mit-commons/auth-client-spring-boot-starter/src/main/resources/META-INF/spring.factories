@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.mit.auth.client.config.DefaultResourceServerConf,\
+com.mit.auth.client.config.TokenStoreConfig
