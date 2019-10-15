@@ -5,8 +5,8 @@ spring:
     gateway:
       discovery:
         locator:
+          # 开启默认路由规则
           enabled: true
-
 
 server:
   port: 8765
@@ -15,7 +15,7 @@ eureka:
   client:
     service-url:
       # eureka-server的地址，这里开启了身份验证
-      defaultZone: http://admin:123456@localhost:8761/eureka/
+      defaultZone: http://${eureka-server-user:admin}:${eureka-server-password:mit123456}@${eureka-server-host:127.0.0.1}:${eureka-server-port:8761}/eureka
 
 # 监控端口
 management:

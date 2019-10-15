@@ -26,21 +26,22 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="auth-client-spring-boot-starter" options="-parameters" />
-      <module name="common-spring-boot-starter" options="-parameters" />
-      <module name="db-spring-boot-starter" options="-parameters" />
+      <module name="Cloud-Platform" options="" />
+      <module name="auth-client-spring-boot-starter" options="" />
+      <module name="common-spring-boot-starter" options="" />
+      <module name="db-spring-boot-starter" options="" />
       <module name="eureka-client-test" options="-parameters" />
       <module name="eureka-client-test2" options="-parameters" />
-      <module name="log-spring-boot-starter" options="-parameters" />
-      <module name="mit-auth-server" options="-parameters" />
+      <module name="log-spring-boot-starter" options="" />
+      <module name="mit-auth-server" options="" />
       <module name="mit-business" options="" />
       <module name="mit-commons" options="" />
-      <module name="mit-gateway" options="-parameters" />
-      <module name="mit-monitor" options="-parameters" />
-      <module name="mit-register" options="-parameters" />
-      <module name="redis-spring-boot-starter" options="-parameters" />
-      <module name="swagger-spring-boot-starter" options="-parameters" />
-      <module name="user-center" options="-parameters" />
+      <module name="mit-gateway" options="" />
+      <module name="mit-monitor" options="" />
+      <module name="mit-register" options="" />
+      <module name="redis-spring-boot-starter" options="" />
+      <module name="swagger-spring-boot-starter" options="" />
+      <module name="user-center" options="" />
     </option>
   </component>
 </project>

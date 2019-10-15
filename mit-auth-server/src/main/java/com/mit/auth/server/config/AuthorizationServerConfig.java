@@ -48,14 +48,6 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         return new RedisTokenStore(redisConnectionFactory);
     }
 
-    //@Autowired
-    //private RedisConnectionFactory redisConnectionFactory;
-
-    /*@Bean
-    public TokenStore redisTokenStore(){
-        return new RedisTokenStore(redisConnectionFactory);
-    }*/
-
     @Autowired(required = false)
     private JwtAccessTokenConverter jwtAccessTokenConverter;
 

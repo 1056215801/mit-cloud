@@ -3,6 +3,7 @@ package com.mit.auth.server.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mit.common.utils.AuthUtils;
 import com.mit.common.utils.ResponseUtil;
+import com.mit.log.annotation.LogAnnotation;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -36,8 +37,6 @@ import java.io.IOException;
 
 /**
  * OAuth2相关操作
- *
- * @author zlt
  */
 @Api(tags = "OAuth2相关操作")
 @Slf4j
@@ -60,6 +59,7 @@ public class OAuth2Controller {
 
     @ApiOperation(value = "用户名密码获取token")
     @PostMapping("/oauth/user/token")
+    @LogAnnotation(module = "auth-server")
     public void getUserTokenInfo(
             @ApiParam(required = true, name = "username", value = "账号") String username,
             @ApiParam(required = true, name = "password", value = "密码") String password,
@@ -68,17 +68,15 @@ public class OAuth2Controller {
         writerToken(request, response, token, "用户名或密码错误");
     }
 
-
-    private void writerToken(HttpServletRequest request, HttpServletResponse response, AbstractAuthenticationToken token
-            , String badCredenbtialsMsg) throws IOException {
+    private void writerToken(HttpServletRequest request, HttpServletResponse response, AbstractAuthenticationToken token,
+             String badCredenbtialsMsg) throws IOException {
         try {
             final String[] clientInfos = AuthUtils.extractClient(request);
             String clientId = clientInfos[0];
             String clientSecret = clientInfos[1];
 
             ClientDetails clientDetails = getClient(clientId, clientSecret);
-            //保存租户id
-            //TenantContextHolder.setTenant(clientId);
+
             TokenRequest tokenRequest = new TokenRequest(MapUtils.EMPTY_MAP, clientId, clientDetails.getScope(), "customer");
             OAuth2Request oAuth2Request = tokenRequest.createOAuth2Request(clientDetails);
             Authentication authentication = authenticationManager.authenticate(token);
@@ -106,7 +104,6 @@ public class OAuth2Controller {
 
     private ClientDetails getClient(String clientId, String clientSecret) {
         ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
-
         if (clientDetails == null) {
             throw new UnapprovedClientAuthenticationException("clientId对应的信息不存在");
         } else if (!passwordEncoder.matches(clientSecret, clientDetails.getClientSecret())) {

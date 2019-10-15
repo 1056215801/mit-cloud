@@ -10,6 +10,7 @@ import com.mit.common.model.SysUser;
 import com.mit.common.utils.ExcelUtil;
 import com.mit.common.web.PageResult;
 import com.mit.common.web.Result;
+import com.mit.log.annotation.LogAnnotation;
 import com.mit.user.model.SysUserExcel;
 import com.mit.user.service.ISysUserService;
 import io.swagger.annotations.Api;
@@ -86,6 +87,7 @@ public class SysUserController {
      */
     @GetMapping(value = "/users-anon/login", params = "username")
     @ApiOperation(value = "根据用户名查询用户")
+    @LogAnnotation(module = "user-center")
     public LoginAppUser findByUsername(String username) {
         return appUserService.findByUsername(username);
     }

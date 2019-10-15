@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>mit-register</artifactId>
-    <description>spring cloud register center</description>
+    <description>注册中心</description>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -18,6 +18,7 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
         </dependency>
+        <!--安全认证-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>

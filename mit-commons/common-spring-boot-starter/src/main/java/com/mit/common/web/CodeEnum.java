@@ -4,8 +4,8 @@ package com.mit.common.web;
  * @Description 返回码
  */
 public enum CodeEnum {
-    SUCCESS(0),
-    ERROR(1);
+    SUCCESS(1),
+    ERROR(0);
 
     private Integer code;
 

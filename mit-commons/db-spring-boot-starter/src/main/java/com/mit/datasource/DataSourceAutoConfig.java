@@ -22,56 +22,61 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import javax.sql.DataSource;
 
-
 /**
- * @author 作者 owen E-mail: 624191343@qq.com
- * @version 创建时间：2017年04月23日 下午20:01:06 类说明
- * central-platform 
- * 在设置了spring.datasource.enable.dynamic 等于true是开启多数据源
+ * 数据源配置
+ * 对一个模块有其主库，所有模块共享一个日志库
+ * 在设置了spring.datasource.enable.dynamic 等于 true 是开启多数据源
  */
 @Configuration
 @AutoConfigureBefore(DruidDataSourceAutoConfigure.class)
 @ConditionalOnProperty(name = {"spring.datasource.dynamic.enable"}, matchIfMissing = false, havingValue = "true")
 @Import(DataSourceAOP.class)
 public class DataSourceAutoConfig {
- 
- 
-	
-//	创建数据源
-//	所有引入db-core的模块都需要一个核心库，可以是user-center，也可以是oauth-center,file-center ,sms-center
+
+	private static final String MAPPER_LOCATION = "classpath*:/mapper/*.xml";
+
+	/**
+	 * 模块核心库
+	 * 所有引入db-spring-boot-starter的模块都需要一个核心库，前缀spring.datasource.druid.core
+	 */
 	@Bean
 	@ConfigurationProperties("spring.datasource.druid.core")
 	public DataSource dataSourceCore(){
 	    return DruidDataSourceBuilder.create().build();
 	}
-//	所有的核心库共享一个日志中心模块，改模块不采用mysql中的innodb引擎，采用归档引擎
+
+	/**
+	 * 日志存储库
+	 * 所有的核心模块共享一个日志存储库，该模块不采用mysql中的innodb引擎，采用归档引擎
+	 */
 	@Bean
 	@ConfigurationProperties("spring.datasource.druid.log")
 	public DataSource dataSourceLog(){
 	    return DruidDataSourceBuilder.create().build();
 	}
-	
-	
+
+	/**
+	 * 纳入动态数据源到spring容器
+	 */
 	@Primary
-    @Bean // 只需要纳入动态数据源到spring容器
+    @Bean
     public DataSource dataSource() {
         DynamicDataSource dataSource = new DynamicDataSource();
-        DataSource coreDataSource =  dataSourceCore() ;
-        DataSource logDataSource =  dataSourceLog();
+        DataSource coreDataSource = dataSourceCore() ;
+        DataSource logDataSource = dataSourceLog();
         dataSource.addDataSource(DataSourceKey.core, coreDataSource);
         dataSource.addDataSource(DataSourceKey.log, logDataSource);
         dataSource.setDefaultTargetDataSource(coreDataSource);
         return dataSource;
     }
 
-    
     @Bean(name = "sqlSessionFactory")
     public SqlSessionFactory sqlSessionFactory(@Qualifier("dataSource") DataSource dataSource)
             throws Exception {
     	MybatisSqlSessionFactoryBean sqlSessionFactory = new MybatisSqlSessionFactoryBean();
 		sqlSessionFactory.setDataSource(dataSource);
-		//默认扫描com.open.*****.dao.*.xml
-		sqlSessionFactory.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:com/open/**/dao/*.xml"));
+
+		sqlSessionFactory.setMapperLocations(new PathMatchingResourcePatternResolver().getResources(MAPPER_LOCATION));
 
 		MybatisConfiguration configuration = new MybatisConfiguration();
 		// configuration.setDefaultScriptingLanguage(MybatisXMLLanguageDriver.class);
@@ -79,16 +84,13 @@ public class DataSourceAutoConfig {
 		configuration.setMapUnderscoreToCamelCase(true);
 		configuration.setCacheEnabled(false);
 		sqlSessionFactory.setConfiguration(configuration);
-		// sqlSessionFactory.setPlugins(new Interceptor[]{
-		// //PerformanceInterceptor(),OptimisticLockerInterceptor()
-		// paginationInterceptor() //添加分页功能
-		// });
-		// sqlSessionFactory.setGlobalConfig(globalConfiguration());
 		return sqlSessionFactory.getObject();
     }
 
-    
-    @Bean // 将数据源纳入spring事物管理
+	/**
+	 * 将数据源纳入spring事物管理
+	 */
+    @Bean
     public DataSourceTransactionManager transactionManager(@Qualifier("dataSource")  DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
     }

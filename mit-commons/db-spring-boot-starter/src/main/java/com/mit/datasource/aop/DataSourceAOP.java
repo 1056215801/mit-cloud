@@ -18,7 +18,6 @@ import org.springframework.core.annotation.Order;
 @Order(-1) // 保证该AOP在@Transactional之前执行
 public class DataSourceAOP {
 
-
     @Before("@annotation(ds)")
     public void changeDataSource(JoinPoint point, DataSource ds) throws Throwable {
         String dsId = ds.name();
@@ -28,8 +27,6 @@ public class DataSourceAOP {
         } catch (Exception e) {
             log.error("数据源[{}]不存在，使用默认数据源 > {}", ds.name(), point.getSignature());
         }
-
-
     }
 
     @After("@annotation(ds)")

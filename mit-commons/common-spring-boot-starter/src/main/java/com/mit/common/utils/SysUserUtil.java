@@ -27,6 +27,10 @@ public class SysUserUtil {
 		
 		// 当OAuth2AuthenticationProcessingFilter设置当前登录时，直接返回
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null) {
+			return null;
+		}
+
 		if (authentication instanceof OAuth2Authentication) {
 			OAuth2Authentication oAuth2Auth = (OAuth2Authentication) authentication;
 			authentication = oAuth2Auth.getUserAuthentication();

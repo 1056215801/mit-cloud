@@ -4,8 +4,6 @@ import com.mit.datasource.constant.DataSourceKey;
 
 /**
  * 用于数据源切换
- * @author owen
- * @create 2017年7月2日
  */
 public class DataSourceHolder {
 

@@ -24,7 +24,7 @@ public class ValidateCodeFilter extends OncePerRequestFilter {
     @Autowired
     private IValidateCodeService validateCodeService;
 
-    @Value("${security.validcode:false}")
+    @Value("${security.validate-code:false}")
     private Boolean validFlag ;
 
     /**

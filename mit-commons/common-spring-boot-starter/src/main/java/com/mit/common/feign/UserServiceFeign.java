@@ -1,18 +1,18 @@
 package com.mit.common.feign;
 
+import com.mit.common.constant.ServiceNameConstant;
 import com.mit.common.feign.fallback.UserServiceFallbackFactory;
 import com.mit.common.model.LoginAppUser;
 import com.mit.common.model.SysUser;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * @author zlt
+ *
  */
-@FeignClient(value = "user-center", fallbackFactory = UserServiceFallbackFactory.class, decode404 = true)
+@FeignClient(value = ServiceNameConstant.USER_SERVICE, fallbackFactory = UserServiceFallbackFactory.class, decode404 = true)
 public interface UserServiceFeign {
     /**
      * feign rpc访问远程/users/{username}接口

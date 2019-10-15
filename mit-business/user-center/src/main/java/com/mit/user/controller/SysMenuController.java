@@ -9,6 +9,7 @@ import com.mit.common.model.SysRole;
 import com.mit.common.model.SysUser;
 import com.mit.common.web.PageResult;
 import com.mit.common.web.Result;
+import com.mit.log.annotation.LogAnnotation;
 import com.mit.user.service.ISysMenuService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -88,6 +89,7 @@ public class SysMenuController {
 
     @ApiOperation(value = "根据roleId获取对应的菜单")
     @GetMapping("/{roleId}/menus")
+    @LogAnnotation(module = "user-center")
     public List<Map<String, Object>> findMenusByRoleId(@PathVariable Long roleId) {
         Set<Long> roleIds = new HashSet<>();
         roleIds.add(roleId);

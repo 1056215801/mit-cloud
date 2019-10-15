@@ -9,32 +9,43 @@
     </parent>
 
     <artifactId>mit-auth-server</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>mit-auth-server</name>
+    <description>认证中心</description>
     <packaging>jar</packaging>
 
-    <properties>
-        <easyCaptcha.version>1.6.2</easyCaptcha.version>
-    </properties>
-
     <dependencies>
+        <dependency>
+            <groupId>com.mit</groupId>
+            <artifactId>common-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mit</groupId>
+            <artifactId>db-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mit</groupId>
+            <artifactId>redis-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mit</groupId>
+            <artifactId>swagger-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mit</groupId>
+            <artifactId>log-spring-boot-starter</artifactId>
+        </dependency>
+
+        <!--服务注册-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
-        <!--<dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>-->
-        <!--<dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-oauth2</artifactId>
-        </dependency>-->
+
+        <!--oauth2-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-security</artifactId>
             <exclusions>
-                <!--&lt;!&ndash;旧版本 redis操作有问题&ndash;&gt;-->
+                <!--旧版本 redis操作有问题-->
                 <exclusion>
                     <groupId>org.springframework.security.oauth</groupId>
                     <artifactId>spring-security-oauth2</artifactId>
@@ -44,17 +55,20 @@
         <dependency>
             <groupId>org.springframework.security.oauth</groupId>
             <artifactId>spring-security-oauth2</artifactId>
-            <version>2.3.5.RELEASE</version>
             <scope>compile</scope>
         </dependency>
+
+        <!--feign-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
+        <!--hystrix-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
@@ -63,70 +77,17 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <!--<dependency>
-            <groupId>com.mit</groupId>
-            <artifactId>redis-spring-boot-starter</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-            <!--<version>2.0.9.RELEASE</version>-->
-        </dependency>
-        <!--<dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-        </dependency>-->
-        <!--<dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-redis</artifactId>
-            <version>2.0.14.RELEASE</version>
-        </dependency>-->
 
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>druid-spring-boot-starter</artifactId>
-            <version>1.1.10</version>
-        </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-        </dependency>
-
-        <!--<dependency>
-            <groupId>org.mybatis.spring.boot</groupId>
-            <artifactId>mybatis-spring-boot-starter</artifactId>
-            <version>1.3.0</version>
-        </dependency>-->
-        <dependency>
-            <groupId>com.mit</groupId>
-            <artifactId>common-spring-boot-starter</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.mit</groupId>
-            <artifactId>swagger-spring-boot-starter</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
         <!-- 验证码生成工具 -->
         <dependency>
             <groupId>com.github.whvcse</groupId>
             <artifactId>easy-captcha</artifactId>
-            <version>${easyCaptcha.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.mit</groupId>
-            <artifactId>log-spring-boot-starter</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
+
         <dependency>
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
             <version>3.2.2</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 

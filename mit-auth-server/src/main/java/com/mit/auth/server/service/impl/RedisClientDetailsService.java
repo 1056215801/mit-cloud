@@ -14,8 +14,6 @@ import java.util.List;
 
 /**
  * @Description 将oauth_client_details表数据缓存到redis，这里做个缓存优化
- * @Author leoya
- * @Date 2019/9/30 11:28
  */
 @Slf4j
 public class RedisClientDetailsService extends JdbcClientDetailsService {

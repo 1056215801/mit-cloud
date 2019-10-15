@@ -1,14 +1,31 @@
 spring:
   datasource:
+    dynamic:
+      enable: true
     druid:
-      url: jdbc:mysql://127.0.0.1:3306/mit-user-center?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=UTC
-      username: root
-      password: 123456
-      driver-class-name:  com.mysql.jdbc.Driver
+      core:
+        url: jdbc:mysql://${mysql-host:127.0.0.1}:${mysql-port:3306}/mit-user-center?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=UTC
+        username: ${mysql-user:root}
+        password: ${mysql-password:123456}
+        driver-class-name:  com.mysql.jdbc.Driver
+      log:
+        url: jdbc:mysql://${mysql-host:127.0.0.1}:${mysql-port:3306}/mit-log-center?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=UTC
+        username: ${mysql-user:root}
+        password: ${mysql-password:123456}
+        driver-class-name:  com.mysql.jdbc.Driver
 
   redis:
-    host: 127.0.0.1
-    port: 6379
+    host: ${redis-host:127.0.0.1}
+    port: ${redis-port:6379}
+    password:
+    timeout: 5000
+    database: 0
+    jedis:
+      pool:
+        max-active: 10000
+        max-idle: 50
+        max-wait: -1
+        min-idle: 0
 
 security:
   oauth2:

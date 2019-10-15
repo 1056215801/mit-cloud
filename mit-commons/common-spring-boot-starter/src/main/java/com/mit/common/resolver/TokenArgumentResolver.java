@@ -7,8 +7,6 @@ import com.mit.common.feign.UserServiceFeign;
 import com.mit.common.model.SysRole;
 import com.mit.common.model.SysUser;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -22,9 +20,6 @@ import java.util.List;
 
 /**
  * Token转化SysUser
- *
- * @author zlt
- * @date 2018/12/21
  */
 @Slf4j
 public class TokenArgumentResolver implements HandlerMethodArgumentResolver {

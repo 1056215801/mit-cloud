@@ -3,7 +3,6 @@ package com.mit.auth.server.service.impl;
 import com.mit.common.feign.UserServiceFeign;
 import com.mit.common.model.LoginAppUser;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,7 +21,6 @@ public class UserDetailServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        System.out.println("查询用户"+username);
         LoginAppUser loginAppUser = userServiceFeign.findByUsername(username);
         if (loginAppUser == null) {
             throw new InternalAuthenticationServiceException("用户名或密码错误");
