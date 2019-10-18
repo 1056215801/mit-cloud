@@ -6,193 +6,253 @@ Use `mit-user-center`;
 -- ----------------------------
 DROP TABLE IF EXISTS `sys_user`;
 CREATE TABLE `sys_user`  (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `password` varchar(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `nickname` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `head_img_url` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `mobile` varchar(11) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `sex` tinyint(1) NULL DEFAULT NULL,
-  `enabled` tinyint(1) NOT NULL DEFAULT 1,
-  `type` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `create_time` datetime(0) NULL DEFAULT NULL,
-  `update_time` datetime(0) NULL DEFAULT NULL,
-  `company` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
-  `open_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
-  `is_del` tinyint(1) NOT NULL DEFAULT 0,
+  `id` int(32) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `username` varchar(50) NOT NULL COMMENT '用户名（登录账号）',
+  `password` varchar(60) NOT NULL COMMENT '密码',
+  `nickname` varchar(255) DEFAULT NULL COMMENT '姓名',
+  `head_img_url` varchar(1024) DEFAULT NULL COMMENT '头像地址',
+  `mobile` varchar(16) DEFAULT NULL COMMENT '手机号码',
+  `email` varchar(64) DEFAULT NULL COMMENT '电子邮箱',
+  `sex` tinyint(1) DEFAULT NULL COMMENT '性别，0男 1女',
+  `is_system_user` tinyint(1) DEFAULT 1 COMMENT '是否系统用户，1是 0不是',
+  `user_type` int(2) DEFAULT NULL COMMENT '用户类型',
+  `dept_id` int(11) DEFAULT NULL COMMENT '组织机构ID',
+  `position` varchar(255) DEFAULT NULL COMMENT '职务',
+  `status` int(2) NOT NULL DEFAULT 1 COMMENT '用户状态，0禁用 1正常',
+  `level` int(2) DEFAULT NULL COMMENT '账号级别',
+  `province_code` varchar(32) DEFAULT NULL COMMENT '省编码',
+  `province_name` varchar(32) DEFAULT NULL COMMENT '省名称',
+  `city_code` varchar(32) DEFAULT NULL COMMENT '市编码',
+  `city_name` varchar(32) DEFAULT NULL COMMENT '市名称',
+  `area_code` varchar(32) DEFAULT NULL COMMENT '区/县编码',
+  `area_name` varchar(32) DEFAULT NULL COMMENT '区/县名称',
+  `street_code` varchar(32) DEFAULT NULL COMMENT '镇/街道办编码',
+  `street_name` varchar(32) DEFAULT NULL COMMENT '镇/街道办名称',
+  `committee_code` varchar(32) DEFAULT NULL COMMENT '居委会编码',
+  `committee_name` varchar(32) DEFAULT NULL COMMENT '居委会名称',
+  `community_code` varchar(32) DEFAULT NULL COMMENT '小区编码',
+  `community_name` varchar(32) DEFAULT NULL COMMENT '小区名称',
+  `remark` varchar(64) DEFAULT NULL COMMENT '备注',
+  `last_login_time` timestamp NULL COMMENT '最后一次登录时间',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
   PRIMARY KEY (`id`),
-  KEY `idx_username` (`username`),
-  KEY `idx_mobile` (`mobile`),
-  KEY `idx_open_id` (`open_id`)
-) ENGINE = InnoDB AUTO_INCREMENT = 27 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+  KEY `idx_username` (`username`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 CHARACTER SET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=Dynamic COMMENT='用户表';
 
 -- ----------------------------
 -- Records of sys_user
 -- ----------------------------
-INSERT INTO `sys_user` VALUES (1, 'admin', '$2a$10$TJkwVdlpbHKnV45.nBxbgeFHmQRmyWlshg94lFu2rKxVtT2OMniDO', '管理员', 'http://pkqtmn0p1.bkt.clouddn.com/头像.png', '18888888888', 0, 1, 'APP', '2017-11-17 16:56:59', '2019-01-08 17:05:47', 'ENGJ', '123', 0);
+INSERT INTO `sys_user` VALUES (1, 'admin', '$2a$10$TJkwVdlpbHKnV45.nBxbgeFHmQRmyWlshg94lFu2rKxVtT2OMniDO', '管理员', '', NULL, NULL, NULL, 1, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_TIMESTAMP, NULL);
 
 -- ----------------------------
 -- Table structure for sys_role
 -- ----------------------------
 DROP TABLE IF EXISTS `sys_role`;
 CREATE TABLE `sys_role`  (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '角色code',
-  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '角色名',
-  `create_time` datetime(0) NULL DEFAULT NULL,
-  `update_time` datetime(0) NULL DEFAULT NULL,
-  `tenant_id` varchar(32) DEFAULT '' COMMENT '租户字段',
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `code` varchar(32) NOT NULL COMMENT '角色标识',
+  `name` varchar(50) NOT NULL COMMENT '角色名称',
+  `remark` varchar(255) DEFAULT NULL COMMENT '描述',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
   PRIMARY KEY (`id`),
-  KEY `idx_code` (`code`),
-  KEY `idx_tenant_id` (`tenant_id`)
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+  KEY `idx_code` (`code`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 CHARACTER SET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=Dynamic COMMENT='角色表';
 
 -- ----------------------------
 -- Records of sys_role
 -- ----------------------------
-INSERT INTO `sys_role` VALUES (1, 'ADMIN', '管理员', '2017-11-17 16:56:59', '2018-09-19 09:39:10', 'webApp');
-INSERT INTO `sys_role` VALUES (2, 'test', '测试', '2018-09-17 10:15:51', '2018-11-15 01:49:14', 'webApp');
-INSERT INTO `sys_role` VALUES (3, '11', '11', '2018-11-15 01:49:19', '2018-11-15 01:49:19', 'webApp');
-INSERT INTO `sys_role` VALUES (4, 'shop_admin', '商城管理员', '2019-08-06 20:02:12.604', '2019-08-06 20:02:12.604', 'zlt');
-INSERT INTO `sys_role` VALUES (5, 'app_admin', '移动管理员', '2019-08-06 20:02:12.604', '2019-08-06 20:02:12.604', 'app');
+INSERT INTO `sys_role` VALUES (1, 'ADMIN', '管理员', NULL, CURRENT_TIMESTAMP, NULL);
 
 -- ----------------------------
--- Table structure for sys_role_user
+-- Table structure for sys_user_role
 -- ----------------------------
-DROP TABLE IF EXISTS `sys_role_user`;
-CREATE TABLE `sys_role_user`  (
-  `user_id` int(11) NOT NULL,
-  `role_id` int(11) NOT NULL,
+DROP TABLE IF EXISTS `sys_user_role`;
+CREATE TABLE `sys_user_role`  (
+  `user_id` int(32) NOT NULL COMMENT '用户ID',
+  `role_id` int(11) NOT NULL COMMENT '角色ID',
   PRIMARY KEY (`user_id`, `role_id`)
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE=InnoDB CHARACTER SET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=Dynamic COMMENT='用户角色关联表';
 
 -- ----------------------------
--- Records of sys_role_user
+-- Records of sys_user_role
 -- ----------------------------
-INSERT INTO `sys_role_user` VALUES (1, 1);
-INSERT INTO `sys_role_user` VALUES (2, 1);
-INSERT INTO `sys_role_user` VALUES (3, 1);
-INSERT INTO `sys_role_user` VALUES (4, 1);
-INSERT INTO `sys_role_user` VALUES (5, 1);
-INSERT INTO `sys_role_user` VALUES (6, 1);
-INSERT INTO `sys_role_user` VALUES (7, 2);
-INSERT INTO `sys_role_user` VALUES (8, 2);
-INSERT INTO `sys_role_user` VALUES (9, 3);
-INSERT INTO `sys_role_user` VALUES (10, 3);
-INSERT INTO `sys_role_user` VALUES (11, 4);
-INSERT INTO `sys_role_user` VALUES (12, 5);
+INSERT INTO `sys_user_role` VALUES (1, 1);
 
 -- ----------------------------
 -- Table structure for sys_menu
 -- ----------------------------
 DROP TABLE IF EXISTS `sys_menu`;
 CREATE TABLE `sys_menu`  (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `parent_id` int(11) NOT NULL,
-  `name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `url` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `path` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `path_method` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `css` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
-  `sort` int(11) NOT NULL,
-  `create_time` datetime(0) NULL,
-  `update_time` datetime(0) NULL,
-  `type` tinyint(1) NOT NULL,
-  `hidden` tinyint(1) NOT NULL DEFAULT 0,
-  `tenant_id` varchar(32) DEFAULT '' COMMENT '租户字段',
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `name` varchar(64) NOT NULL COMMENT '菜单名称',
+  `type` tinyint(1) NOT NULL COMMENT '菜单类型',
+  `path` varchar(1024) DEFAULT NULL COMMENT '前端路由URL',
+  `permission_code` varchar(64) DEFAULT NULL COMMENT '权限标识',
+  `parent_id` int(11) NOT NULL COMMENT '父级ID',
+  `icon` varchar(32) DEFAULT NULL COMMENT '菜单图标',
+  `sort` int(11) NOT NULL COMMENT '排序值',
+  `hidden` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否隐藏，1隐藏',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
   PRIMARY KEY (`id`),
-  KEY `idx_parent_id` (`parent_id`),
-  KEY `idx_tenant_id` (`tenant_id`)
-) ENGINE = InnoDB AUTO_INCREMENT = 62 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+  KEY `idx_parent_id` (`parent_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=19 CHARACTER SET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=Dynamic COMMENT='菜单权限表';
 
 -- ----------------------------
 -- Records of sys_menu
 -- ----------------------------
-INSERT INTO `sys_menu` VALUES (2, 12, '用户管理', '#!user', 'system/user.html', NULL, 'layui-icon-friends', 2, '2017-11-17 16:56:59', '2018-09-19 11:26:14', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (3, 12, '角色管理', '#!role', 'system/role.html', NULL, 'layui-icon-user', 3, '2017-11-17 16:56:59', '2019-01-14 15:34:40', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (4, 12, '菜单管理', '#!menus', 'system/menus.html', NULL, 'layui-icon-menu-fill', 4, '2017-11-17 16:56:59', '2018-09-03 02:23:47', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (9, 37, '文件中心', '#!files', 'files/files.html', NULL, 'layui-icon-file', 3, '2017-11-17 16:56:59', '2019-01-17 20:18:44', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (10, 37, '文档中心', '#!swagger', 'http://127.0.0.1:9900/swagger-ui.html', NULL, 'layui-icon-app', 4, '2017-11-17 16:56:59', '2019-01-17 20:18:48', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (11, 12, '我的信息', '#!myInfo', 'system/myInfo.html', NULL, 'layui-icon-login-qq', 10, '2017-11-17 16:56:59', '2018-09-02 06:12:24', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (12, -1, '认证管理', 'javascript:;', '', NULL, 'layui-icon-set', 1, '2017-11-17 16:56:59', '2018-12-13 15:02:49', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (35, 12, '应用管理', '#!app', 'attestation/app.html', NULL, 'layui-icon-link', 5, '2017-11-17 16:56:59', '2019-01-14 15:35:15', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (37, -1, '系统管理', 'javascript:;', '', NULL, 'layui-icon-set', 2, '2018-08-25 10:41:58', '2019-01-23 14:01:58', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (62, 63, '应用监控', '#!admin', 'http://127.0.0.1:6500/#/wallboard', NULL, 'layui-icon-chart-screen', 3, '2019-01-08 15:32:19', '2019-01-17 20:22:44', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (63, -1, '系统监控', 'javascript:;', '', NULL, 'layui-icon-set', 2, '2019-01-10 18:35:05', '2019-01-10 18:35:05', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (64, 63, '系统日志', '#!sysLog', 'log/sysLog.html', NULL, 'layui-icon-file-b', 1, '2019-01-10 18:35:55', '2019-01-12 00:27:20', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (65, 37, '代码生成器', '#!generator', 'generator/list.html', NULL, 'layui-icon-template', 2, '2019-01-14 00:47:36', '2019-01-23 14:06:31', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (66, 63, '慢查询SQL', '#!slowQueryLog', 'log/slowQueryLog.html', NULL, 'layui-icon-snowflake', 2, '2019-01-16 12:00:27', '2019-01-16 15:32:31', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (67, -1, '任务管理', '#!job', 'http://127.0.0.1:8081/', NULL, 'layui-icon-date', 3, '2019-01-17 20:18:22', '2019-01-23 14:01:53', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (68, 63, '应用吞吐量监控', '#!sentinel', 'http://127.0.0.1:6999', NULL, 'layui-icon-chart', 4, '2019-01-22 16:31:55', '2019-01-22 16:34:03', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (69, 37, '配置中心', '#!nacos', 'http://127.0.0.1:8848/nacos', NULL, 'layui-icon-tabs', 1, '2019-01-23 14:06:10', '2019-01-23 14:06:10', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (70, 63, 'APM监控', '#!apm', 'http://127.0.0.1:8080', null, 'layui-icon-engine', 5, '2019-02-27 10:31:55', '2019-02-27 10:31:55', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (71, -1, '搜索管理', 'javascript:;', '', NULL, 'layui-icon-set', 3, '2018-08-25 10:41:58', '2019-01-23 15:07:07', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (72, 71, '索引管理', '#!index', 'search/index_manager.html', NULL, 'layui-icon-template', 1, '2019-01-10 18:35:55', '2019-01-12 00:27:20', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (73, 71, '用户搜索', '#!userSearch', 'search/user_search.html', NULL, 'layui-icon-user', 2, '2019-01-10 18:35:55', '2019-01-12 00:27:20', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (74, 12, 'Token管理', '#!tokens', 'system/tokens.html', NULL, 'layui-icon-unlink', 6, '2019-07-11 16:56:59', '2019-07-11 16:56:59', 1, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (75, 2, '用户列表', '/api-user/users', 'user-list', 'GET', null, 1, '2019-07-29 16:56:59', '2019-07-29 16:56:59', 2, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (76, 2, '查询用户角色', '/api-user/roles', 'user-roles', 'GET', null, 2, '2019-07-29 16:56:59', '2019-07-29 16:56:59', 2, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (77, 2, '用户添加', '/api-user/users/saveOrUpdate', 'user-btn-add', 'POST', null, 3, '2019-07-29 16:56:59', '2019-07-29 16:56:59', 2, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (78, 2, '用户导出', '/api-user/users/export', 'user-btn-export', 'POST', null, 4, '2019-07-29 16:56:59', '2019-07-29 16:56:59', 2, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (79, 2, '用户导入', '/api-user/users/import', 'user-btn-import', 'POST', null, 5, '2019-07-29 16:56:59', '2019-07-29 16:56:59', 2, 0, 'webApp');
-INSERT INTO `sys_menu` VALUES (80, -1, '用户管理', '#!user', '', NULL, NULL, 1, '2019-08-06 20:02:12.604', '2019-08-06 20:02:12.604', 1, 0, 'zlt');
-INSERT INTO `sys_menu` VALUES (81, -1, '商品管理', '#!product', '', NULL, NULL, 2, '2019-08-06 20:02:12.604', '2019-08-06 20:02:12.604', 1, 0, 'zlt');
-INSERT INTO `sys_menu` VALUES (82, -1, '支付管理', '#!pay', '', NULL, NULL, 3, '2019-08-06 20:02:12.604', '2019-08-06 20:02:12.604', 1, 0, 'zlt');
-INSERT INTO `sys_menu` VALUES (83, -1, '交易管理', '#!trading', '', NULL, NULL, 4, '2019-08-06 20:02:12.604', '2019-08-06 20:02:12.604', 1, 0, 'zlt');
-INSERT INTO `sys_menu` VALUES (84, -1, '系统管理', '#!system', '', NULL, NULL, 1, '2019-08-06 20:02:12.604', '2019-08-06 20:02:12.604', 1, 0, 'app');
+BEGIN;
+INSERT INTO `sys_menu` VALUES
+(1, '系统管理', 1, '#!sys', NULL, -1, 'layui-icon-friends', 1, 0, CURRENT_TIMESTAMP, NULL),
+(2, '用户管理', 1, '#!sys/user', NULL, 1, 'layui-icon-friends', 1, 0, CURRENT_TIMESTAMP, NULL),
+(3, '增加用户', 2, NULL, 'sys:user:add', 2, 'layui-icon-friends', 1, 0, CURRENT_TIMESTAMP, NULL),
+(4, '修改用户', 2, NULL, 'sys:user:edit', 2, 'layui-icon-friends', 2, 0, CURRENT_TIMESTAMP, NULL),
+(5, '删除用户', 2, NULL, 'sys:user:del', 2, 'layui-icon-friends', 3, 0, CURRENT_TIMESTAMP, NULL),
+(6, '菜单管理', 1, '#!sys/menu', NULL, 1, 'layui-icon-friends', 2, 0, CURRENT_TIMESTAMP, NULL),
+(7, '增加菜单', 2, NULL, 'sys:menu:add', 6, 'layui-icon-friends', 1, 0, CURRENT_TIMESTAMP, NULL),
+(8, '修改菜单', 2, NULL, 'sys:menu:edit', 6, 'layui-icon-friends', 2, 0, CURRENT_TIMESTAMP, NULL),
+(9, '删除菜单', 2, NULL, 'sys:menu:del', 6, 'layui-icon-friends', 3, 0, CURRENT_TIMESTAMP, NULL),
+(10, '组织机构', 1, '#!sys/dept', NULL, 1, 'layui-icon-friends', 3, 0, CURRENT_TIMESTAMP, NULL),
+(11, '增加组织', 2, NULL, 'sys:dept:add', 9, 'layui-icon-friends', 1, 0, CURRENT_TIMESTAMP, NULL),
+(12, '修改组织', 2, NULL, 'sys:dept:edit', 9, 'layui-icon-friends', 2, 0, CURRENT_TIMESTAMP, NULL),
+(13, '删除组织', 2, NULL, 'sys:dept:del', 9, 'layui-icon-friends', 3, 0, CURRENT_TIMESTAMP, NULL),
+(14, '角色管理', 1, '#!sys/role', NULL, 1, 'layui-icon-friends', 3, 0, CURRENT_TIMESTAMP, NULL),
+(15, '增加角色', 2, NULL, 'sys:role:add', 14, 'layui-icon-friends', 1, 0, CURRENT_TIMESTAMP, NULL),
+(16, '修改角色', 2, NULL, 'sys:role:edit', 14, 'layui-icon-friends', 2, 0, CURRENT_TIMESTAMP, NULL),
+(17, '删除角色', 2, NULL, 'sys:role:del', 14, 'layui-icon-friends', 3, 0, CURRENT_TIMESTAMP, NULL),
+(18, '角色授权', 2, NULL, 'sys:role:auth', 14, 'layui-icon-friends', 4, 0, CURRENT_TIMESTAMP, NULL);
+COMMIT;
 
 -- ----------------------------
 -- Table structure for sys_role_menu
 -- ----------------------------
 DROP TABLE IF EXISTS `sys_role_menu`;
 CREATE TABLE `sys_role_menu`  (
-  `role_id` int(11) NOT NULL,
-  `menu_id` int(11) NOT NULL,
+  `role_id` int(11) NOT NULL COMMENT '角色ID',
+  `menu_id` int(11) NOT NULL COMMENT '菜单权限ID',
   PRIMARY KEY (`role_id`, `menu_id`)
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE=InnoDB CHARACTER SET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=Dynamic COMMENT='角色菜单关联表';
 
 -- ----------------------------
 -- Records of sys_role_menu
 -- ----------------------------
-INSERT INTO `sys_role_menu` VALUES (1, 2);
-INSERT INTO `sys_role_menu` VALUES (1, 3);
-INSERT INTO `sys_role_menu` VALUES (1, 4);
-INSERT INTO `sys_role_menu` VALUES (1, 9);
-INSERT INTO `sys_role_menu` VALUES (1, 10);
-INSERT INTO `sys_role_menu` VALUES (1, 11);
-INSERT INTO `sys_role_menu` VALUES (1, 12);
-INSERT INTO `sys_role_menu` VALUES (1, 35);
-INSERT INTO `sys_role_menu` VALUES (1, 37);
-INSERT INTO `sys_role_menu` VALUES (1, 62);
-INSERT INTO `sys_role_menu` VALUES (1, 63);
-INSERT INTO `sys_role_menu` VALUES (1, 64);
-INSERT INTO `sys_role_menu` VALUES (1, 65);
-INSERT INTO `sys_role_menu` VALUES (1, 66);
-INSERT INTO `sys_role_menu` VALUES (1, 67);
-INSERT INTO `sys_role_menu` VALUES (1, 68);
-INSERT INTO `sys_role_menu` VALUES (1, 69);
-INSERT INTO `sys_role_menu` VALUES (1, 70);
-INSERT INTO `sys_role_menu` VALUES (1, 71);
-INSERT INTO `sys_role_menu` VALUES (1, 72);
-INSERT INTO `sys_role_menu` VALUES (1, 73);
-INSERT INTO `sys_role_menu` VALUES (1, 74);
-INSERT INTO `sys_role_menu` VALUES (1, 75);
-INSERT INTO `sys_role_menu` VALUES (1, 76);
-INSERT INTO `sys_role_menu` VALUES (1, 77);
-INSERT INTO `sys_role_menu` VALUES (1, 78);
-INSERT INTO `sys_role_menu` VALUES (1, 79);
-INSERT INTO `sys_role_menu` VALUES (2, 2);
-INSERT INTO `sys_role_menu` VALUES (2, 3);
-INSERT INTO `sys_role_menu` VALUES (2, 4);
-INSERT INTO `sys_role_menu` VALUES (2, 11);
-INSERT INTO `sys_role_menu` VALUES (2, 12);
-INSERT INTO `sys_role_menu` VALUES (2, 35);
-INSERT INTO `sys_role_menu` VALUES (3, 2);
-INSERT INTO `sys_role_menu` VALUES (3, 3);
-INSERT INTO `sys_role_menu` VALUES (3, 4);
-INSERT INTO `sys_role_menu` VALUES (3, 12);
-INSERT INTO `sys_role_menu` VALUES (4, 80);
-INSERT INTO `sys_role_menu` VALUES (4, 81);
-INSERT INTO `sys_role_menu` VALUES (4, 82);
-INSERT INTO `sys_role_menu` VALUES (4, 83);
-INSERT INTO `sys_role_menu` VALUES (5, 84);
+BEGIN;
+INSERT INTO `sys_role_menu` VALUES
+(1, 1),
+(1, 2),
+(1, 3),
+(1, 4),
+(1, 5),
+(1, 6),
+(1, 7),
+(1, 8),
+(1, 9),
+(1, 10),
+(1, 11),
+(1, 12),
+(1, 13),
+(1, 14),
+(1, 15),
+(1, 16),
+(1, 17),
+(1, 18);
+COMMIT;
+
+-- ----------------------------
+-- Table structure for sys_dept
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_dept`;
+CREATE TABLE `sys_dept` (
+    `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `name` varchar(50) NOT NULL COMMENT '机构名称',
+    `parent_id` int(11) NOT NULL COMMENT '父级机构ID',
+    `sort` int(11) NOT NULL COMMENT '排序',
+    `remark` varchar(50) DEFAULT NULL COMMENT '描述',
+    `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=45 CHARACTER SET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=Dynamic COMMENT='组织机构表';
+
+-- ----------------------------
+-- Record of sys_dept
+-- ----------------------------
+BEGIN;
+INSERT INTO `sys_dept` VALUES
+('1', '东湖区', '-1', '1', NULL, CURRENT_TIMESTAMP, NULL),
+('2', '东湖区公安局', '1', '1', NULL, CURRENT_TIMESTAMP, NULL),
+('3', '东湖区扫黑办', '1', '2', NULL, CURRENT_TIMESTAMP, NULL),
+('4', '东湖区信访局', '1', '3', NULL, CURRENT_TIMESTAMP, NULL),
+('5', '东湖区教育局', '1', '4', NULL, CURRENT_TIMESTAMP, NULL),
+('6', '东湖区民政局', '1', '5', NULL, CURRENT_TIMESTAMP, NULL),
+('7', '东湖区司法局', '1', '6', NULL, CURRENT_TIMESTAMP, NULL),
+('8', '东湖区卫计委', '1', '7', NULL, CURRENT_TIMESTAMP, NULL),
+('9', '东湖区市场和质量监督管理局', '1', '8', NULL, CURRENT_TIMESTAMP, NULL),
+('10', '东湖区安监局', '1', '9', NULL, CURRENT_TIMESTAMP, NULL),
+('11', '东湖区团区委', '1', '10', NULL, CURRENT_TIMESTAMP, NULL),
+('12', '东湖区人力资源和社会保障局', '1', '11', NULL, CURRENT_TIMESTAMP, NULL),
+('13', '东湖区环保局', '1', '12', NULL, CURRENT_TIMESTAMP, NULL),
+('14', '东湖区城市建设局', '1', '13', NULL, CURRENT_TIMESTAMP, NULL),
+('15', '东湖区城市管理局', '1', '14', NULL, CURRENT_TIMESTAMP, NULL),
+('16', '东湖区住房保障和房产管理局', '1', '15', NULL, CURRENT_TIMESTAMP, NULL),
+('17', '东湖区文化广电旅游新闻出版局', '1', '16', NULL, CURRENT_TIMESTAMP, NULL),
+('18', '东湖区综治委', '1', '17', NULL, CURRENT_TIMESTAMP, NULL),
+('19', '东湖区综治办', '1', '18', NULL, CURRENT_TIMESTAMP, NULL),
+('20', '东湖区综治中心', '1', '19', NULL, CURRENT_TIMESTAMP, NULL),
+('21', '东湖区人民法院', '1', '20', NULL, CURRENT_TIMESTAMP, NULL),
+('22', '公园街道办事处', '1', '21', NULL, CURRENT_TIMESTAMP, NULL),
+('23', '滕王阁街道', '1', '22', NULL, CURRENT_TIMESTAMP, NULL),
+('24', '八一桥街道', '1', '23', NULL, CURRENT_TIMESTAMP, NULL),
+('25', '百花洲街道', '1', '24', NULL, CURRENT_TIMESTAMP, NULL),
+('26', '墩子塘街道', '1', '25', NULL, CURRENT_TIMESTAMP, NULL),
+('27', '大院街道', '1', '26', NULL, CURRENT_TIMESTAMP, NULL),
+('28', '豫章街道', '1', '27', NULL, CURRENT_TIMESTAMP, NULL),
+('29', '董家窑街道', '1', '28', NULL, CURRENT_TIMESTAMP, NULL),
+('30', '彭家桥街道', '1', '29', NULL, CURRENT_TIMESTAMP, NULL),
+('31', '扬农管理处', '1', '30', NULL, CURRENT_TIMESTAMP, NULL),
+('32', '扬子洲镇', '1', '31', NULL, CURRENT_TIMESTAMP, NULL),
+('33', '贤士湖管理处', '1', '32', NULL, CURRENT_TIMESTAMP, NULL),
+('34', '民巷社区', '23', '1', NULL, CURRENT_TIMESTAMP, NULL),
+('35', '章江路社区', '23', '2', NULL, CURRENT_TIMESTAMP, NULL),
+('36', '上凤凰坡社区', '23', '3', NULL, CURRENT_TIMESTAMP, NULL),
+('37', '滕王阁社区', '23', '4', NULL, CURRENT_TIMESTAMP, NULL),
+('38', '射步亭社区', '23', '5', NULL, CURRENT_TIMESTAMP, NULL),
+('39', '李家巷社区', '23', '6', NULL, CURRENT_TIMESTAMP, NULL),
+('40', '子固路社区', '23', '7', NULL, CURRENT_TIMESTAMP, NULL),
+('41', '铁街社区', '23', '8', NULL, CURRENT_TIMESTAMP, NULL),
+('42', '榕门路社区', '23', '9', NULL, CURRENT_TIMESTAMP, NULL),
+('43', '民巷社区01', '34', '1', NULL, CURRENT_TIMESTAMP, NULL),
+('44', '民巷社区02', '34', '2', NULL, CURRENT_TIMESTAMP, NULL);
+COMMIT;
+
+-- ----------------------------
+--  Table structure for `sys_dept_relation`
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_dept_relation`;
+CREATE TABLE `sys_dept_relation` (
+    `ancestor` int(11) NOT NULL COMMENT '祖先节点',
+    `descendant` int(11) NOT NULL COMMENT '后代节点',
+    PRIMARY KEY (`ancestor`,`descendant`),
+    KEY `idx1` (`ancestor`),
+    KEY `idx2` (`descendant`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC COMMENT='部门关系表';
+
+-- ----------------------------
+--  Records of `sys_dept_relation`
+-- ----------------------------
+BEGIN;
+INSERT INTO `sys_dept_relation` VALUES
+('1', '1'), ('1', '2'), ('1', '3'), ('1', '4'), ('1', '5'), ('1', '6'), ('1', '7'), ('1', '8'), ('1', '9'), ('1', '10'),
+('1', '11'), ('1', '12'), ('1', '13'), ('1', '14'), ('1', '15'), ('1', '16'), ('1', '17'), ('1', '18'), ('1', '19'), ('1', '20'),
+('1', '21'), ('1', '22'), ('1', '23'), ('1', '24'), ('1', '25'), ('1', '26'), ('1', '27'), ('1', '28'), ('1', '29'), ('1', '30'),
+('1', '31'), ('1', '32'), ('1', '33'),
+('2', '2'),  ('3', '3'), ('4', '4'), ('5', '5'), ('6', '6'), ('7', '7'), ('8', '8'), ('9', '9'), ('10', '10'), ('11', '11'),
+('12', '12'),  ('13', '13'), ('14', '14'), ('15', '15'), ('16', '16'), ('17', '17'), ('18', '18'), ('19', '19'), ('20', '20'), ('21', '21'),
+('22', '22'),
+('23', '23'), ('23', '34'), ('23', '35'), ('23', '36'), ('23', '37'), ('23', '38'), ('23', '39'), ('23', '40'), ('23', '41'), ('23', '42'),
+('24', '24'), ('25', '25'), ('26', '26'), ('27', '27'), ('28', '28'), ('29', '29'), ('30', '30'), ('31', '31'),
+('32', '32'),  ('33', '33'),
+('34', '34'), ('34', '43'), ('34', '44'),
+('35', '35'), ('36', '36'), ('37', '37'), ('38', '38'), ('39', '39'), ('40', '40'), ('41', '41'), ('42', '42'), ('43', '43'), ('44', '44');
+COMMIT;

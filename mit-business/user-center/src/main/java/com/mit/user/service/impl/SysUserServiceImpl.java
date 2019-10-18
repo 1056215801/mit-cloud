@@ -1,27 +1,33 @@
 package com.mit.user.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mit.common.constant.CommonConstant;
-import com.mit.common.model.LoginAppUser;
+import com.mit.common.dto.LoginAppUser;
 import com.mit.common.model.SuperEntity;
 import com.mit.common.model.SysMenu;
 import com.mit.common.model.SysRole;
 import com.mit.common.model.SysUser;
 import com.mit.common.web.PageResult;
 import com.mit.common.web.Result;
-import com.mit.user.mapper.SysRoleMenuMapper;
+import com.mit.user.dto.UserDTO;
 import com.mit.user.mapper.SysUserMapper;
-import com.mit.user.model.SysRoleUser;
+import com.mit.user.model.SysUserRole;
 import com.mit.user.model.SysUserExcel;
-import com.mit.user.service.ISysRoleUserService;
+import com.mit.user.service.ISysDeptService;
+import com.mit.user.service.ISysMenuService;
+import com.mit.user.service.ISysRoleService;
+import com.mit.user.service.ISysUserRoleService;
 import com.mit.user.service.ISysUserService;
+import com.mit.user.vo.UserVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,50 +35,41 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @author 作者 owen E-mail: 624191343@qq.com
+ *
  */
 @Slf4j
 @Service
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements ISysUserService {
-    //private final static String LOCK_KEY_USERNAME = CommonConstant.LOCK_KEY_PREFIX+"username:";
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Resource
-    private ISysRoleUserService roleUserService;
+    @Autowired
+    private ISysRoleService sysRoleService;
 
-    @Resource
-    private SysRoleMenuMapper roleMenuMapper;
+    @Autowired
+    private ISysMenuService sysMenuService;
 
-    //@Autowired
-    //private DistributedLock lock;
+    @Autowired
+    private ISysUserRoleService sysUserRoleService;
 
-    @Override
-    public LoginAppUser findByUsername(String username) {
-        SysUser sysUser = this.selectByUsername(username);
-        return getLoginAppUser(sysUser);
-    }
+    @Autowired
+    private ISysDeptService sysDeptService;
 
     @Override
-    public LoginAppUser findByOpenId(String username) {
-        SysUser sysUser = this.selectByOpenId(username);
-        return getLoginAppUser(sysUser);
-    }
-
-    @Override
-    public LoginAppUser findByMobile(String username) {
-        SysUser sysUser = this.selectByMobile(username);
+    public LoginAppUser getLoginAppUser(String username) {
+        SysUser condition = new SysUser();
+        condition.setUsername(username);
+        SysUser sysUser = baseMapper.selectOne(new QueryWrapper<>(condition));
         return getLoginAppUser(sysUser);
     }
 
@@ -82,95 +79,80 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             LoginAppUser loginAppUser = new LoginAppUser();
             BeanUtils.copyProperties(sysUser, loginAppUser);
 
-            List<SysRole> sysRoles = roleUserService.findRolesByUserId(sysUser.getId());
+            List<SysRole> sysRoles = sysRoleService.listRolesByUserId(sysUser.getId());
             // 设置角色
-            loginAppUser.setRoles(sysRoles);
+            loginAppUser.setSysRoles(new HashSet<>(sysRoles));
 
+            // 设置权限列表
+            Set<String> permissions = new HashSet<>();
             if (!CollectionUtils.isEmpty(sysRoles)) {
                 Set<Long> roleIds = sysRoles.parallelStream().map(SuperEntity::getId).collect(Collectors.toSet());
-                List<SysMenu> menus = roleMenuMapper.findMenusByRoleIds(roleIds, CommonConstant.PERMISSION);
-                if (!CollectionUtils.isEmpty(menus)) {
-                    Set<String> permissions = menus.parallelStream().map(p -> p.getPath())
-                            .collect(Collectors.toSet());
-                    // 设置权限集合
-                    loginAppUser.setPermissions(permissions);
-                }
+                roleIds.forEach(roleId -> {
+                    List<String> permissionList = sysMenuService.getMenuByRoleId(roleId)
+                            .stream()
+                            .filter(menuVo -> StringUtils.isNotEmpty(menuVo.getPermissionCode()))
+                            .map(SysMenu::getPermissionCode)
+                            .collect(Collectors.toList());
+                    permissions.addAll(permissionList);
+                });
+                loginAppUser.setPermissions(permissions);
             }
             return loginAppUser;
         }
         return null;
     }
 
-    /**
-     * 根据用户名查询用户
-     * @param username
-     * @return
-     */
     @Override
-    public SysUser selectByUsername(String username) {
-        List<SysUser> users = baseMapper.selectList(
-                new QueryWrapper<SysUser>().eq("username", username)
-        );
-        return getUser(users);
-    }
-
-    /**
-     * 根据手机号查询用户
-     * @param mobile
-     * @return
-     */
-    @Override
-    public SysUser selectByMobile(String mobile) {
-        List<SysUser> users = baseMapper.selectList(
-                new QueryWrapper<SysUser>().eq("mobile", mobile)
-        );
-        return getUser(users);
-    }
-
-    /**
-     * 根据openId查询用户
-     * @param openId
-     * @return
-     */
-    @Override
-    public SysUser selectByOpenId(String openId) {
-        List<SysUser> users = baseMapper.selectList(
-                new QueryWrapper<SysUser>().eq("open_id", openId)
-        );
-        return getUser(users);
-    }
-
-    private SysUser getUser(List<SysUser> users) {
-        SysUser user = null;
-        if (users != null && !users.isEmpty()) {
-            user = users.get(0);
-        }
-        return user;
-    }
-
-    /**
-     * 给用户设置角色
-     */
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public void setRoleToUser(Long id, Set<Long> roleIds) {
+    public UserVO getUserVoById(Long id) {
         SysUser sysUser = baseMapper.selectById(id);
-        if (sysUser == null) {
-            throw new IllegalArgumentException("用户不存在");
+        if (null == sysUser) {
+            return null;
         }
+        UserVO userVO = new UserVO();
+        BeanUtil.copyProperties(sysUser, userVO);
+        // 设置角色
+        List<SysRole> sysRoles = sysRoleService.listRolesByUserId(sysUser.getId());
+        userVO.setRoleList(sysRoles);
+        if (null != sysUser.getDeptId()) {
+            userVO.setDeptName(sysDeptService.getById(sysUser.getDeptId()).getName());
+        }
+        return userVO;
+    }
 
-        roleUserService.deleteUserRole(id, null);
-        if (!CollectionUtils.isEmpty(roleIds)) {
-            List<SysRoleUser> roleUsers = new ArrayList<>(roleIds.size());
-            roleIds.forEach(roleId -> roleUsers.add(new SysRoleUser(id, roleId)));
-            roleUserService.saveBatch(roleUsers);
-        }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean saveOrUpdateUser(UserDTO userDto) {
+        SysUser sysUser = new SysUser();
+        BeanUtils.copyProperties(userDto, sysUser);
+        baseMapper.insert(sysUser);
+        List<SysUserRole> userRoleList = userDto.getRole()
+                .stream().map(roleId -> {
+                    SysUserRole userRole = new SysUserRole();
+                    userRole.setUserId(sysUser.getId());
+                    userRole.setRoleId(roleId);
+                    return userRole;
+                }).collect(Collectors.toList());
+        return sysUserRoleService.saveBatch(userRoleList);
+    }
+
+    /**
+     * 分页查询用户信息（含有角色信息）
+     * @param page    分页对象
+     * @param sysUser 参数列表
+     * @return
+     */
+    @Override
+    public IPage<List<UserVO>> getUserWithRolePage(Page page, SysUser sysUser) {
+        //TODO
+        //List userList = baseMapper.selectPage(page, new QueryWrapper<>(sysUser)).getRecords();
+        //return baseMapper.getUserVosPage(page, userDTO);
+        return null;
     }
 
     @Transactional
     @Override
-    public Result updatePassword(Long id, String oldPassword, String newPassword) {
-        SysUser sysUser = baseMapper.selectById(id);
+    public Boolean updatePassword(Long id, String oldPassword, String newPassword) {
+        /*SysUser sysUser = baseMapper.selectById(id);
         if (StrUtil.isNotBlank(oldPassword)) {
             if (!passwordEncoder.matches(oldPassword, sysUser.getPassword())) {
                 return Result.failed("旧密码错误");
@@ -183,10 +165,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setId(id);
         user.setPassword(passwordEncoder.encode(newPassword));
         baseMapper.updateById(user);
-        return Result.succeed("修改成功");
+        return Result.succeed("修改成功");*/
+        return true;
     }
 
-    @Override
+    /*@Override
     public PageResult<SysUser> findUsers(Map<String, Object> params) {
         Page<SysUser> page = new Page<>(MapUtils.getInteger(params, "page"), MapUtils.getInteger(params, "limit"));
         List<SysUser> list = baseMapper.findList(page, params);
@@ -194,81 +177,31 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (total > 0) {
             List<Long> userIds = list.stream().map(SysUser::getId).collect(Collectors.toList());
 
-            List<SysRole> sysRoles = roleUserService.findRolesByUserIds(userIds);
-            list.forEach(u -> u.setRoles(sysRoles.stream().filter(r -> !ObjectUtils.notEqual(u.getId(), r.getUserId()))
+            List<SysRole> sysRoles = sysUserRoleService.findRolesByUserIds(userIds);
+            list.forEach(u -> u.setRoles(sysRoles.stream().filter(r -> !ObjectUtils.notEqual(u.getId(), r.getId()))
                     .collect(Collectors.toList())));
         }
         return PageResult.<SysUser>builder().data(list).code(0).count(total).build();
-    }
+    }*/
+
 
     @Override
-    public List<SysRole> findRolesByUserId(Long userId) {
-        return roleUserService.findRolesByUserId(userId);
-    }
-
-    @Override
-    public Result updateEnabled(Map<String, Object> params) {
-        Long id = MapUtils.getLong(params, "id");
-        Boolean enabled = MapUtils.getBoolean(params, "enabled");
+    public Boolean updateEnabled(boolean isEnabled) {
+        return true;
+        /*Long id = MapUtils.getLong(params, "id");
+        Integer status = MapUtils.getInteger(params, "status");
 
         SysUser appUser = baseMapper.selectById(id);
         if (appUser == null) {
             return Result.failed("用户不存在");
         }
-        appUser.setEnabled(enabled);
+        appUser.setStatus(status);
         appUser.setUpdateTime(new Date());
 
         int i = baseMapper.updateById(appUser);
         log.info("修改用户：{}", appUser);
 
-        return i > 0 ? Result.succeed(appUser, "更新成功") : Result.failed("更新失败");
+        return i > 0 ? Result.succeed(appUser, "更新成功") : Result.failed("更新失败");*/
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public Result saveOrUpdateUser(SysUser sysUser) {
-        /*if (sysUser.getId() == null) {
-            if (StringUtils.isBlank(sysUser.getType())) {
-                sysUser.setType(UserType.BACKEND.name());
-            }
-            sysUser.setPassword(passwordEncoder.encode(CommonConstant.DEF_USER_PASSWORD));
-            sysUser.setEnabled(Boolean.TRUE);
-        }
-        String username = sysUser.getUsername();
-        boolean result = super.saveOrUpdateIdempotency(sysUser, lock
-                , LOCK_KEY_USERNAME+username, new QueryWrapper<SysUser>().eq("username", username)
-                , username+"已存在");
-        //更新角色
-        if (result && StrUtil.isNotEmpty(sysUser.getRoleId())) {
-            roleUserService.deleteUserRole(sysUser.getId(), null);
-            List roleIds = Arrays.asList(sysUser.getRoleId().split(","));
-            if (!CollectionUtils.isEmpty(roleIds)) {
-                List<SysRoleUser> roleUsers = new ArrayList<>(roleIds.size());
-                roleIds.forEach(roleId -> roleUsers.add(new SysRoleUser(sysUser.getId(), Long.parseLong(roleId.toString()))));
-                roleUserService.saveBatch(roleUsers);
-            }
-        }
-        return result ? Result.succeed(sysUser, "操作成功") : Result.failed("操作失败");*/
-        return null;
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public boolean delUser(Long id) {
-        roleUserService.deleteUserRole(id, null);
-        return baseMapper.deleteById(id) > 0;
-    }
-
-    @Override
-    public List<SysUserExcel> findAllUsers(Map<String, Object> params) {
-        List<SysUserExcel> sysUserExcels = new ArrayList<>();
-        List<SysUser> list = baseMapper.findList(new Page<>(1, -1), params);
-
-        for (SysUser sysUser : list) {
-            SysUserExcel sysUserExcel = new SysUserExcel();
-            BeanUtils.copyProperties(sysUser, sysUserExcel);
-            sysUserExcels.add(sysUserExcel);
-        }
-        return sysUserExcels;
-    }
 }

@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.mit.user.mapper.SysUserRoleMapper">
 	<delete id="deleteUserRole">
-		delete from sys_role_user
+		delete from sys_user_role
 		<where>
 			<if test="userId != null">
 				and user_id = #{userId}
@@ -16,6 +16,6 @@
 
 	<select id="findRolesByUserId" resultType="com.mit.common.model.SysRole">
 		select r.* from sys_role r
-		inner join sys_role_user ru on r.id = ru.role_id and ru.user_id = #{userId}
+		inner join sys_user_role ru on r.id = ru.role_id and ru.user_id = #{userId}
 	</select>
 </mapper>

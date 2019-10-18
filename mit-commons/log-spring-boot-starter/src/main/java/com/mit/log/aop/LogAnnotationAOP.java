@@ -2,9 +2,7 @@ package com.mit.log.aop;
 
 import com.alibaba.fastjson.JSON;
 import com.mit.common.constant.TraceConstant;
-import com.mit.common.model.LoginAppUser;
 import com.mit.log.model.SysLog;
-import com.mit.common.utils.SysUserUtil;
 import com.mit.log.annotation.LogAnnotation;
 import com.mit.log.service.LogService;
 import com.mit.log.util.TraceUtil;

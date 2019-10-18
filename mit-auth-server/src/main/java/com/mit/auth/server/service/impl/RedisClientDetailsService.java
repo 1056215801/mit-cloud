@@ -1,6 +1,6 @@
 package com.mit.auth.server.service.impl;
 
-import com.mit.common.constant.UaaConstant;
+import com.mit.common.constant.SecurityConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
@@ -106,7 +106,7 @@ public class RedisClientDetailsService extends JdbcClientDetailsService {
     }
 
     private String clientRedisKey(String clientId) {
-        return UaaConstant.CACHE_CLIENT_KEY + ":" + clientId;
+        return SecurityConstants.CACHE_CLIENT_KEY + ":" + clientId;
     }
 }
 

@@ -2,7 +2,7 @@ package com.mit.user.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.mit.common.model.SysRole;
-import com.mit.user.model.SysRoleUser;
+import com.mit.user.model.SysUserRole;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -11,14 +11,13 @@ import org.apache.ibatis.annotations.Select;
 import java.util.List;
 
 /**
- * @author zlt
  * 用户角色关系
  */
 @Mapper
-public interface SysUserRoleMapper extends BaseMapper<SysRoleUser> {
+public interface SysUserRoleMapper extends BaseMapper<SysUserRole> {
     int deleteUserRole(@Param("userId") Long userId, @Param("roleId") Long roleId);
 
-    @Insert("insert into sys_role_user(user_id, role_id) values(#{userId}, #{roleId})")
+    @Insert("insert into sys_user_role(user_id, role_id) values(#{userId}, #{roleId})")
     int saveUserRoles(@Param("userId") Long userId, @Param("roleId") Long roleId);
 
     /**
@@ -35,7 +34,7 @@ public interface SysUserRoleMapper extends BaseMapper<SysRoleUser> {
      * @param userIds
      * @return
      */
-    @Select("<script>select r.*,ru.user_id from sys_role_user ru inner join sys_role r on r.id = ru.role_id where ru.user_id IN " +
+    @Select("<script>select r.*,ru.user_id from sys_user_role ru inner join sys_role r on r.id = ru.role_id where ru.user_id IN " +
             " <foreach item='item' index='index' collection='list' open='(' separator=',' close=')'> " +
             " #{item} " +
             " </foreach>" +

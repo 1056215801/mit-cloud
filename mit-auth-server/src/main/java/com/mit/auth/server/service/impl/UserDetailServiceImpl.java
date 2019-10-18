@@ -1,7 +1,9 @@
 package com.mit.auth.server.service.impl;
 
 import com.mit.common.feign.UserServiceFeign;
-import com.mit.common.model.LoginAppUser;
+import com.mit.common.dto.LoginAppUser;
+import com.mit.common.web.CodeEnum;
+import com.mit.common.web.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -21,7 +23,11 @@ public class UserDetailServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        LoginAppUser loginAppUser = userServiceFeign.findByUsername(username);
+        Result<LoginAppUser> result = userServiceFeign.findByUsername(username);
+        LoginAppUser loginAppUser = null;
+        if (result.getResp_code().intValue() == CodeEnum.SUCCESS.getCode()) {
+            loginAppUser = result.getDatas();
+        }
         if (loginAppUser == null) {
             throw new InternalAuthenticationServiceException("用户名或密码错误");
         }

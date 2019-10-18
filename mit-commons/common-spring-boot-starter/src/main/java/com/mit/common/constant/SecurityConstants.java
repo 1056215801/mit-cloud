@@ -3,7 +3,11 @@ package com.mit.common.constant;
 /**
  * @Description oauth常量
  */
-public class UaaConstant {
+public class SecurityConstants {
+    /**
+     * 角色前缀
+     */
+    public static final String ROLE = "ROLE_";
     /**
      * 缓存client的redis key，这里是hash结构存储
      */

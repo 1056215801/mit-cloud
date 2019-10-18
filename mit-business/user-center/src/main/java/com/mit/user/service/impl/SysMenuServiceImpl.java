@@ -1,13 +1,19 @@
 package com.mit.user.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mit.common.model.SysMenu;
+import com.mit.common.web.Result;
 import com.mit.user.mapper.SysMenuMapper;
+import com.mit.user.mapper.SysRoleMenuMapper;
 import com.mit.user.model.SysRoleMenu;
 import com.mit.user.service.ISysMenuService;
 import com.mit.user.service.ISysRoleMenuService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -18,71 +24,41 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * @author 作者 owen E-mail: 624191343@qq.com
+ * 菜单权限实现类
  */
 @Slf4j
 @Service
 public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> implements ISysMenuService {
- 	@Resource
-	private ISysRoleMenuService roleMenuService;
 
+	@Resource
+	private SysRoleMenuMapper sysRoleMenuMapper;
+
+	@Override
+	@Cacheable(value = "menu_details", key = "#roleId  + '_menu'")
+	public List<SysMenu> getMenuByRoleId(Long roleId) {
+		return baseMapper.listMenusByRoleId(roleId);
+	}
+
+	@Override
 	@Transactional(rollbackFor = Exception.class)
-	@Override
-	public void setMenuToRole(Long roleId, Set<Long> menuIds) {
-		roleMenuService.delete(roleId, null);
-
-		if (!CollectionUtils.isEmpty(menuIds)) {
-			List<SysRoleMenu> roleMenus = new ArrayList<>(menuIds.size());
-			menuIds.forEach(menuId -> roleMenus.add(new SysRoleMenu(roleId, menuId)));
-			roleMenuService.saveBatch(roleMenus);
+	@CacheEvict(value = "menu_details", allEntries = true)
+	public Result removeMenuById(Long id) {
+		// 查询父节点为当前节点的节点
+		List<SysMenu> menuList = this.list(Wrappers.<SysMenu>query()
+				.lambda().eq(SysMenu::getParentId, id));
+		if (CollUtil.isNotEmpty(menuList)) {
+			return Result.failed("菜单含有下级不能删除");
 		}
-	}
+		sysRoleMenuMapper.delete(Wrappers.<SysRoleMenu>query()
+				.lambda().eq(SysRoleMenu::getMenuId, id));
 
-	/**
-	 * 角色菜单列表
-	 * @param roleIds
-	 * @return
-	 */
-	@Override
-	public List<SysMenu> findByRoles(Set<Long> roleIds) {
-		return roleMenuService.findMenusByRoleIds(roleIds, null);
-	}
-
-	/**
-	 * 角色菜单列表
-	 * @param roleIds 角色ids
-	 * @param roleIds 是否菜单
-	 * @return
-	 */
-	@Override
-	public List<SysMenu> findByRoles(Set<Long> roleIds, Integer type) {
-		return roleMenuService.findMenusByRoleIds(roleIds, type);
+		//删除当前菜单及其子菜单
+		return Result.succeed(this.removeById(id));
 	}
 
 	@Override
-	public List<SysMenu> findByRoleCodes(Set<String> roleCodes, Integer type) {
-		return roleMenuService.findMenusByRoleCodes(roleCodes, type);
-	}
-
-    /**
-     * 查询所有菜单
-     */
-	@Override
-	public List<SysMenu> findAll() {
-		return baseMapper.selectList(
-                new QueryWrapper<SysMenu>().orderByAsc("sort")
-        );
-	}
-
-    /**
-     * 查询所有一级菜单
-     */
-	@Override
-	public List<SysMenu> findOnes() {
-        return baseMapper.selectList(
-                new QueryWrapper<SysMenu>()
-                        .eq("type", 1)
-                        .orderByAsc("sort")
-        );
+	@CacheEvict(value = "menu_details", allEntries = true)
+	public Boolean updateMenuById(SysMenu sysMenu) {
+		return this.updateById(sysMenu);
 	}
 }

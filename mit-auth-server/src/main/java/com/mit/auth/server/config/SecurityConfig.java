@@ -1,7 +1,7 @@
 package com.mit.auth.server.config;
 
 import com.mit.auth.server.handler.OauthLogoutHandler;
-import com.mit.common.constant.UaaConstant;
+import com.mit.common.constant.SecurityConstants;
 import com.mit.common.properties.PermitUrlProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -86,14 +86,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .and()
                 .formLogin()
-                .loginPage(UaaConstant.LOGIN_PAGE)
-                .loginProcessingUrl(UaaConstant.OAUTH_LOGIN_PRO_URL)
+                .loginPage(SecurityConstants.LOGIN_PAGE)
+                .loginProcessingUrl(SecurityConstants.OAUTH_LOGIN_PRO_URL)
                 .successHandler(authenticationSuccessHandler)
                 .failureHandler(authenticationFailureHandler)
                 .and()
                 .logout()
-                .logoutUrl(UaaConstant.LOGOUT_URL)
-                .logoutSuccessUrl(UaaConstant.LOGIN_PAGE)
+                .logoutUrl(SecurityConstants.LOGOUT_URL)
+                .logoutSuccessUrl(SecurityConstants.LOGIN_PAGE)
                 .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
                 .addLogoutHandler(oauthLogoutHandler)
                 .clearAuthentication(true)

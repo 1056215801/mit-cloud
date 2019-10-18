@@ -2,30 +2,24 @@ package com.mit.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.mit.common.model.SysRole;
-import com.mit.common.web.PageResult;
-import com.mit.common.web.Result;
 
-import java.util.Map;
+import java.util.List;
 
 /**
-* @author zlt
+*
  */
 public interface ISysRoleService extends IService<SysRole> {
-	void saveRole(SysRole sysRole);
-
-	void deleteRole(Long id);
-
 	/**
-	 * 角色列表
-	 * @param params
+	 * 通过用户ID，查询角色信息
+	 * @param userId
 	 * @return
 	 */
-	PageResult<SysRole> findRoles(Map<String, Object> params);
+	List<SysRole> listRolesByUserId(Long userId);
 
 	/**
-	 * 新增或更新角色
-	 * @param sysRole
-	 * @return Result
+	 * 通过角色ID，删除角色
+	 * @param id
+	 * @return
 	 */
-	Result saveOrUpdateRole(SysRole sysRole);
+	Boolean removeRoleById(Long id);
 }

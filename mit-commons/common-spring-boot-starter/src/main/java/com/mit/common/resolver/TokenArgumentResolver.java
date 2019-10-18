@@ -2,7 +2,7 @@ package com.mit.common.resolver;
 
 import cn.hutool.core.util.StrUtil;
 import com.mit.common.annotation.LoginUser;
-import com.mit.common.constant.UaaConstant;
+import com.mit.common.constant.SecurityConstants;
 import com.mit.common.feign.UserServiceFeign;
 import com.mit.common.model.SysRole;
 import com.mit.common.model.SysUser;
@@ -56,9 +56,9 @@ public class TokenArgumentResolver implements HandlerMethodArgumentResolver {
         LoginUser loginUser = methodParameter.getParameterAnnotation(LoginUser.class);
         boolean isFull = loginUser.isFull();
         HttpServletRequest request = nativeWebRequest.getNativeRequest(HttpServletRequest.class);
-        String userId = request.getHeader(UaaConstant.USER_ID_HEADER);
-        String username = request.getHeader(UaaConstant.USER_HEADER);
-        String roles = request.getHeader(UaaConstant.ROLE_HEADER);
+        String userId = request.getHeader(SecurityConstants.USER_ID_HEADER);
+        String username = request.getHeader(SecurityConstants.USER_HEADER);
+        String roles = request.getHeader(SecurityConstants.ROLE_HEADER);
         if (StrUtil.isBlank(username)) {
             log.warn("resolveArgument error username is empty");
             return null;
@@ -77,7 +77,7 @@ public class TokenArgumentResolver implements HandlerMethodArgumentResolver {
             sysRole.setCode(role);
             sysRoleList.add(sysRole);
         });
-        user.setRoles(sysRoleList);
+        //user.setRoles(sysRoleList);
         return user;
     }
 }

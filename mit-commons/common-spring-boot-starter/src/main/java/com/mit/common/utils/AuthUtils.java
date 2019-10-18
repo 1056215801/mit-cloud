@@ -1,6 +1,6 @@
 package com.mit.common.utils;
 
-import com.mit.common.constant.UaaConstant;
+import com.mit.common.constant.SecurityConstants;
 import com.mit.common.model.SysUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -48,7 +48,7 @@ public class AuthUtils {
      * @return
      */
     private static String extractHeaderToken(HttpServletRequest request) {
-        Enumeration<String> headers = request.getHeaders(UaaConstant.TOKEN_HEADER);
+        Enumeration<String> headers = request.getHeaders(SecurityConstants.TOKEN_HEADER);
         while (headers.hasMoreElements()) {
             String value = headers.nextElement();
             if ((value.toLowerCase().startsWith(OAuth2AccessToken.BEARER_TYPE.toLowerCase()))) {

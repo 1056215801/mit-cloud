@@ -3,22 +3,25 @@ package com.mit.user.model;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /**
- * @author zlt
- * @date 2019/7/30
+ * 用户角色表
  */
-@Setter
-@Getter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-@TableName("sys_role_user")
-public class SysRoleUser extends Model<SysRoleUser> {
+@TableName("sys_user_role")
+public class SysUserRole extends Model<SysUserRole> {
+	/**
+	 * 用户id
+	 */
 	private Long userId;
+	/**
+	 * 角色id
+	 */
 	private Long roleId;
 }

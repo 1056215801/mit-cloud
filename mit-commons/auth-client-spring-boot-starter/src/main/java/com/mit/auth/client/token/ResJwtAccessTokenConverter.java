@@ -1,7 +1,7 @@
 package com.mit.auth.client.token;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.mit.common.model.LoginAppUser;
+import com.mit.common.dto.LoginAppUser;
 import com.mit.common.model.SysRole;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;

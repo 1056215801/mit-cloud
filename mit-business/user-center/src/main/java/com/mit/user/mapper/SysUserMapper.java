@@ -11,9 +11,6 @@ import java.util.Map;
 
 /**
  * 用户表 Mapper 接口
- *
- * @author zlt
- * @data 2018-10-29
  */
 @Mapper
 public interface SysUserMapper extends BaseMapper<SysUser> {

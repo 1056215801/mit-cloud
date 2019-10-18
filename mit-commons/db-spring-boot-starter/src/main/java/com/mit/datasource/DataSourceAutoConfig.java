@@ -1,14 +1,17 @@
 package com.mit.datasource;
 
-
 import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure;
 import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceBuilder;
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
+import com.baomidou.mybatisplus.core.config.GlobalConfig;
+import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import com.mit.datasource.aop.DataSourceAOP;
 import com.mit.datasource.constant.DataSourceKey;
+import com.mit.datasource.handler.MyMetaObjectHandler;
 import com.mit.datasource.util.DynamicDataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -20,7 +23,9 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
+import javax.annotation.Resource;
 import javax.sql.DataSource;
+import java.util.Arrays;
 
 /**
  * 数据源配置
@@ -34,6 +39,9 @@ import javax.sql.DataSource;
 public class DataSourceAutoConfig {
 
 	private static final String MAPPER_LOCATION = "classpath*:/mapper/*.xml";
+
+	@Resource
+	private PaginationInterceptor paginationInterceptor;
 
 	/**
 	 * 模块核心库
@@ -84,6 +92,15 @@ public class DataSourceAutoConfig {
 		configuration.setMapUnderscoreToCamelCase(true);
 		configuration.setCacheEnabled(false);
 		sqlSessionFactory.setConfiguration(configuration);
+
+		//全局配置
+		GlobalConfig globalConfig  = new GlobalConfig();
+		//配置填充器
+		globalConfig.setMetaObjectHandler(new MyMetaObjectHandler());
+		sqlSessionFactory.setGlobalConfig(globalConfig);
+
+		sqlSessionFactory.setPlugins(paginationInterceptor);
+
 		return sqlSessionFactory.getObject();
     }
 

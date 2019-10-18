@@ -2,50 +2,32 @@ package com.mit.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.mit.common.model.SysMenu;
+import com.mit.common.web.Result;
 
 import java.util.List;
-import java.util.Set;
 
 /**
- * @author zlt
+ * 菜单权限
  */
 public interface ISysMenuService extends IService<SysMenu> {
 	/**
-	 * 查询所有菜单
+	 * 通过角色编号查询URL 权限
+	 * @param roleId 角色ID
+	 * @return 菜单列表
 	 */
-	List<SysMenu> findAll();
+	List<SysMenu> getMenuByRoleId(Long roleId);
 
 	/**
-	 * 查询所有一级菜单
+	 * 级联删除菜单
+	 * @param id 菜单ID
+	 * @return 成功、失败
 	 */
-	List<SysMenu> findOnes();
+	Result removeMenuById(Long id);
 
 	/**
-	 * 角色分配菜单
-	 * @param roleId
-	 * @param menuIds
+	 * 更新菜单信息
+	 * @param sysMenu 菜单信息
+	 * @return 成功、失败
 	 */
-	void setMenuToRole(Long roleId, Set<Long> menuIds);
-
-	/**
-	 * 角色菜单列表
-	 * @param roleIds 角色ids
-	 * @return
-	 */
-	List<SysMenu> findByRoles(Set<Long> roleIds);
-
-	/**
-	 * 角色菜单列表
-	 * @param roleIds 角色ids
-	 * @param roleIds 是否菜单
-	 * @return
-	 */
-	List<SysMenu> findByRoles(Set<Long> roleIds, Integer type);
-
-	/**
-	 * 角色菜单列表
-	 * @param roleCodes
-	 * @return
-	 */
-	List<SysMenu> findByRoleCodes(Set<String> roleCodes, Integer type);
+	Boolean updateMenuById(SysMenu sysMenu);
 }

@@ -1,64 +1,60 @@
 package com.mit.user.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.mit.common.model.LoginAppUser;
+import com.mit.common.dto.LoginAppUser;
 import com.mit.common.model.SysRole;
 import com.mit.common.model.SysUser;
 import com.mit.common.web.PageResult;
 import com.mit.common.web.Result;
+import com.mit.user.dto.UserDTO;
 import com.mit.user.model.SysUserExcel;
+import com.mit.user.vo.UserVO;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
-* @author zlt
+* 用户service接口
  */
 public interface ISysUserService extends IService<SysUser> {
 	/**
-	 * 获取UserDetails对象
-	 * @param username
-	 * @return
+	 * 根据用户名获取登录对象
+	 * @param	username	用户名
+	 * @return	LoginAppUser
 	 */
-	LoginAppUser findByUsername(String username);
-
-	LoginAppUser findByOpenId(String username);
-
-	LoginAppUser findByMobile(String username);
+	LoginAppUser getLoginAppUser(String username);
 
 	/**
 	 * 通过SysUser 转换为 LoginAppUser，把roles和permissions也查询出来
-	 * @param sysUser
-	 * @return
+	 * @param	sysUser	用户
+	 * @return	LoginAppUser
 	 */
 	LoginAppUser getLoginAppUser(SysUser sysUser);
 
 	/**
-	 * 根据用户名查询用户
-	 * @param username
-	 * @return
+	 * 通过ID查询用户信息
+	 * @param id 用户ID
+	 * @return 用户信息UserVO，包含角色
 	 */
-	SysUser selectByUsername(String username);
-	/**
-	 * 根据手机号查询用户
-	 * @param mobile
-	 * @return
-	 */
-	SysUser selectByMobile(String mobile);
-	/**
-	 * 根据openId查询用户
-	 * @param openId
-	 * @return
-	 */
-	SysUser selectByOpenId(String openId);
+	UserVO getUserVoById(Long id);
 
 	/**
-	 * 用户分配角色
-	 * @param id
-	 * @param roleIds
+	 * 保存用户信息
+	 * @param userDto DTO 对象
+	 * @return success/fail
 	 */
-	void setRoleToUser(Long id, Set<Long> roleIds);
+	Boolean saveOrUpdateUser(UserDTO userDto);
+
+	/**
+	 * 分页查询用户信息（含有角色信息）
+	 * @param page    分页对象
+	 * @param sysUser 参数列表
+	 * @return
+	 */
+	IPage<List<UserVO>> getUserWithRolePage(Page page, SysUser sysUser);
 
 	/**
 	 * 更新密码
@@ -67,41 +63,14 @@ public interface ISysUserService extends IService<SysUser> {
 	 * @param newPassword
 	 * @return
 	 */
-	Result updatePassword(Long id, String oldPassword, String newPassword);
-
-	/**
-	 * 用户列表
-	 * @param params
-	 * @return
-	 */
-	PageResult<SysUser> findUsers(Map<String, Object> params);
-
-
-	/**
-	 * 用户角色列表
-	 * @param userId
-	 * @return
-	 */
-	List<SysRole> findRolesByUserId(Long userId);
+	Boolean updatePassword(Long id, String oldPassword, String newPassword);
 
 	/**
 	 * 状态变更
-	 * @param params
+	 * @param isEnabled
 	 * @return
 	 */
-	Result updateEnabled(Map<String, Object> params);
+	Boolean updateEnabled(boolean isEnabled);
 
-	/**
-	 * 查询全部用户
-	 * @param params
-	 * @return
-	 */
-	List<SysUserExcel> findAllUsers(Map<String, Object> params);
 
-	Result saveOrUpdateUser(SysUser sysUser);
-
-	/**
-	 * 删除用户
-	 */
-	boolean delUser(Long id);
 }

@@ -1,18 +1,22 @@
 package com.mit.user.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.alibaba.fastjson.JSONObject;
-import com.mit.common.annotation.LoginUser;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mit.common.constant.CommonConstant;
-import com.mit.common.model.LoginAppUser;
+import com.mit.common.dto.LoginAppUser;
 import com.mit.common.model.SysRole;
 import com.mit.common.model.SysUser;
 import com.mit.common.utils.ExcelUtil;
+import com.mit.common.utils.SecurityUtils;
 import com.mit.common.web.PageResult;
 import com.mit.common.web.Result;
 import com.mit.log.annotation.LogAnnotation;
+import com.mit.user.constant.UpmsPermissionCode;
+import com.mit.user.dto.UserDTO;
 import com.mit.user.model.SysUserExcel;
 import com.mit.user.service.ISysUserService;
+import com.mit.user.vo.UserVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -23,12 +27,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,159 +44,125 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
- * @author 作者 owen E-mail: 624191343@qq.com
- * 用户
+ * 用户管理
  */
 @Slf4j
 @RestController
-@Api(tags = "用户模块api")
+@RequestMapping("/user")
+@Api(tags = "用户管理模块api")
 public class SysUserController {
     private static final String ADMIN_CHANGE_MSG = "超级管理员不给予修改";
 
-    /**
-     * 全文搜索逻辑删除Dto
-     */
-    //private static final LogicDelDto SEARCH_LOGIC_DEL_DTO = new LogicDelDto("isDel", "否");
-
     @Autowired
-    private ISysUserService appUserService;
-
-    //@Autowired
-    //private IQueryService queryService;
-
-    /**
-     * 当前登录用户 LoginAppUser
-     *
-     * @return
-     */
-    @ApiOperation(value = "根据access_token当前登录用户")
-    @GetMapping("/users/current")
-    public Result<LoginAppUser> getLoginAppUser(@LoginUser(isFull = true) SysUser user) {
-        return Result.succeed(appUserService.getLoginAppUser(user));
-    }
+    private ISysUserService sysUserService;
 
     /**
      * 查询用户实体对象SysUser
      */
     @GetMapping(value = "/users/name/{username}")
     @ApiOperation(value = "根据用户名查询用户实体")
-    @Cacheable(value = "user", key = "#username")
-    public SysUser selectByUsername(@PathVariable String username) {
-        return appUserService.selectByUsername(username);
+    //@Cacheable(value = "user", key = "#username")
+    public Result<SysUser> selectByUsername(@PathVariable String username) {
+        SysUser condition = new SysUser();
+        condition.setUsername(username);
+        return Result.succeed(sysUserService.getOne(new QueryWrapper<>(condition)));
     }
 
     /**
-     * 查询用户登录对象LoginAppUser
+     * 查询用户登录对象LoginAppUser，权限中心调用登录
      */
-    @GetMapping(value = "/users-anon/login", params = "username")
+    @GetMapping(value = "/users-anon/login")
     @ApiOperation(value = "根据用户名查询用户")
     @LogAnnotation(module = "user-center")
-    public LoginAppUser findByUsername(String username) {
-        return appUserService.findByUsername(username);
+    public Result<LoginAppUser> login(@RequestParam String username) {
+        return Result.succeed(sysUserService.getLoginAppUser(username));
     }
 
     /**
-     * 通过手机号查询用户、角色信息
-     *
-     * @param mobile 手机号
+     * 获取当前登录用户信息
+     * @return  Result<LoginAppUser>
      */
-    @GetMapping(value = "/users-anon/mobile", params = "mobile")
-    @ApiOperation(value = "根据手机号查询用户")
-    public SysUser findByMobile(String mobile) {
-        return appUserService.findByMobile(mobile);
+    @ApiOperation(value = "获取当前登录用户信息")
+    @GetMapping("/info")
+    public Result<LoginAppUser> info() {
+        String username = Objects.requireNonNull(SecurityUtils.getUser()).getUsername();
+        return Result.succeed(sysUserService.getLoginAppUser(username));
     }
 
     /**
-     * 根据OpenId查询用户信息
-     *
-     * @param openId openId
+     * 根据ID获取用户信息
+     * @param id 用户ID
+     * @return Result<SysUser>
      */
-    @GetMapping(value = "/users-anon/openId", params = "openId")
-    @ApiOperation(value = "根据OpenId查询用户")
-    public SysUser findByOpenId(String openId) {
-        return appUserService.findByOpenId(openId);
-    }
-
-    @GetMapping("/users/{id}")
-    public SysUser findUserById(@PathVariable Long id) {
-        return appUserService.getById(id);
+    @GetMapping("/{id}")
+    public Result<UserVO> findUserById(@PathVariable Long id) {
+        return Result.succeed(sysUserService.getUserVoById(id));
     }
 
     /**
-     * 管理后台修改用户
-     *
-     * @param sysUser
+     * 新增用户
+     * @param userDTO 用户对象
      */
-    @PutMapping("/users")
-    @CachePut(value = "user", key = "#sysUser.username")
-    public void updateSysUser(@RequestBody SysUser sysUser) {
-        appUserService.updateById(sysUser);
+    @PostMapping
+    @PreAuthorize("hasAuthority('" + UpmsPermissionCode.SYS_USER_ADD + "')")
+    //@CachePut(value = "user", key = "#sysUser.username")
+    public Result saveSysUser(@RequestBody UserDTO userDTO) {
+        return Result.succeed(sysUserService.saveOrUpdateUser(userDTO));
     }
 
     /**
-     * 管理后台给用户分配角色
-     *
-     * @param id
-     * @param roleIds
+     * 修改用户
+     * @param userDTO 用户对象
      */
-    @PostMapping("/users/{id}/roles")
-    public void setRoleToUser(@PathVariable Long id, @RequestBody Set<Long> roleIds) {
-        appUserService.setRoleToUser(id, roleIds);
+    @PutMapping
+    @PreAuthorize("hasAuthority('" + UpmsPermissionCode.SYS_USER_EDIT + "')")
+    //@CachePut(value = "user", key = "#sysUser.username")
+    public Result updateSysUser(@RequestBody UserDTO userDTO) {
+        if (null == userDTO.getId()) {
+            return Result.failed("用户ID不能为空");
+        }
+        return Result.succeed(sysUserService.updateById(userDTO));
     }
 
-    /**
-     * 获取用户的角色
-     *
-     * @param
-     * @return
-     */
-    @GetMapping("/users/{id}/roles")
-    public List<SysRole> findRolesByUserId(@PathVariable Long id) {
-        return appUserService.findRolesByUserId(id);
-    }
 
     /**
-     * 用户查询
+     * 分页查询用户
      *
-     * @param params
-     * @return
+     * @param page    参数集
+     * @param sysUser 查询参数列表
+     * @return 用户集合
      */
-    @ApiOperation(value = "用户查询列表")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", value = "分页起始位置", required = true, dataType = "Integer"),
-            @ApiImplicitParam(name = "limit", value = "分页结束位置", required = true, dataType = "Integer")
-    })
-    @GetMapping("/users")
-    public PageResult<SysUser> findUsers(@RequestParam Map<String, Object> params) {
-        return appUserService.findUsers(params);
+    @GetMapping("/page")
+    public Result getUserPage(Page page, SysUser sysUser) {
+        return Result.succeed(sysUserService.getUserWithRolePage(page, sysUser));
     }
+
 
     /**
      * 修改用户状态
      *
-     * @param params
+     * @param enabled
      * @return
      */
     @ApiOperation(value = "修改用户状态")
-    @GetMapping("/users/updateEnabled")
+    @GetMapping("/updateEnabled")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "用户id", required = true, dataType = "Integer"),
+            @ApiImplicitParam(name = "id", value = "用户id", required = true, dataType = "Long"),
             @ApiImplicitParam(name = "enabled", value = "是否启用", required = true, dataType = "Boolean")
     })
-    public Result updateEnabled(@RequestParam Map<String, Object> params) {
-        Long id = MapUtils.getLong(params, "id");
+    public Result updateEnabled(@RequestParam Long id, Boolean enabled) {
         if (checkAdmin(id)) {
             return Result.failed(ADMIN_CHANGE_MSG);
         }
-        return appUserService.updateEnabled(params);
+        return Result.succeed(sysUserService.updateEnabled(enabled));
     }
 
     /**
      * 管理后台，给用户重置密码
-     *
      * @param id
      */
     @PutMapping(value = "/users/{id}/password")
@@ -198,7 +170,7 @@ public class SysUserController {
         if (checkAdmin(id)) {
             return Result.failed(ADMIN_CHANGE_MSG);
         }
-        appUserService.updatePassword(id, null, null);
+        sysUserService.updatePassword(id, null, null);
         return Result.succeed("重置成功");
     }
 
@@ -206,39 +178,27 @@ public class SysUserController {
      * 用户自己修改密码
      */
     @PutMapping(value = "/users/password")
-    public Result resetPassword(@RequestBody SysUser sysUser) {
+    public Result resetPassword(@RequestBody SysUser sysUser, @RequestParam String oldPassword) {
         if (checkAdmin(sysUser.getId())) {
             return Result.failed(ADMIN_CHANGE_MSG);
         }
-        appUserService.updatePassword(sysUser.getId(), sysUser.getOldPassword(), sysUser.getNewPassword());
+        // TODO
+        sysUserService.updatePassword(sysUser.getId(), oldPassword, sysUser.getPassword());
         return Result.succeed("重置成功");
     }
 
     /**
      * 删除用户
-     *
      * @param id
      */
-    @DeleteMapping(value = "/users/{id}")
+    @DeleteMapping(value = "/{id}")
+    @PreAuthorize("hasAuthority('" + UpmsPermissionCode.SYS_USER_DEL + "')")
     public Result delete(@PathVariable Long id) {
         if (checkAdmin(id)) {
             return Result.failed(ADMIN_CHANGE_MSG);
         }
-        appUserService.delUser(id);
+        sysUserService.removeById(id);
         return Result.succeed("删除成功");
-    }
-
-
-    /**
-     * 新增or更新
-     *
-     * @param sysUser
-     * @return
-     */
-    @CacheEvict(value = "user", key = "#sysUser.username")
-    @PostMapping("/users/saveOrUpdate")
-    public Result saveOrUpdate(@RequestBody SysUser sysUser) {
-        return appUserService.saveOrUpdateUser(sysUser);
     }
 
     /**
@@ -248,9 +208,9 @@ public class SysUserController {
      */
     @PostMapping("/users/export")
     public void exportUser(@RequestParam Map<String, Object> params, HttpServletResponse response) throws IOException {
-        List<SysUserExcel> result = appUserService.findAllUsers(params);
+        //List<SysUserExcel> result = sysUserService.findAllUsers(params);
         //导出操作
-        ExcelUtil.exportExcel(result, null, "用户", SysUserExcel.class, "user", response);
+        //ExcelUtil.exportExcel(result, null, "用户", SysUserExcel.class, "user", response);
     }
 
     @PostMapping(value = "/users/import")
@@ -268,24 +228,11 @@ public class SysUserController {
                     //user.setType(UserType.BACKEND.name());
                     users.add(user);
                 });
-                appUserService.saveBatch(users);
+                sysUserService.saveBatch(users);
             }
         }
         return Result.succeed("导入数据成功，一共【"+rowNum+"】行");
     }
-
-/*    @ApiOperation(value = "用户全文搜索列表")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", value = "分页起始位置", required = true, dataType = "Integer"),
-            @ApiImplicitParam(name = "limit", value = "分页结束位置", required = true, dataType = "Integer"),
-            @ApiImplicitParam(name = "queryStr", value = "搜索关键字", dataType = "String")
-    })
-    @GetMapping("/users/search")
-    public PageResult<JSONObject> search(SearchDto searchDto) {
-        searchDto.setIsHighlighter(true);
-        searchDto.setSortCol("createTime");
-        return queryService.strQuery("sys_user", searchDto, SEARCH_LOGIC_DEL_DTO);
-    }*/
 
     /**
      * 是否超级管理员

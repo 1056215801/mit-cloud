@@ -1,7 +1,7 @@
 package com.mit.auth.server.filter;
 
 import com.mit.auth.server.service.IValidateCodeService;
-import com.mit.common.constant.UaaConstant;
+import com.mit.common.constant.SecurityConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,10 +45,10 @@ public class ValidateCodeFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         // 登录提交的时候验证验证码 配置打开验证开关
         if(validFlag){
-            if (pathMatcher.match(UaaConstant.PASSWORD_LOGIN_PRO_URL, request.getRequestURI())) {
+            if (pathMatcher.match(SecurityConstants.PASSWORD_LOGIN_PRO_URL, request.getRequestURI())) {
                 if (request.getParameter("grant_type") != null){
                     //密码模式需要验证码
-                    if(UaaConstant.PASSWORD.toUpperCase().equals(
+                    if(SecurityConstants.PASSWORD.toUpperCase().equals(
                             request.getParameter("grant_type").toUpperCase())){
                         return false;
                     }

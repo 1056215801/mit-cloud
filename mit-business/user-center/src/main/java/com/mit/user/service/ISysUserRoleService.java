@@ -2,14 +2,14 @@ package com.mit.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.mit.common.model.SysRole;
-import com.mit.user.model.SysRoleUser;
+import com.mit.user.model.SysUserRole;
 
 import java.util.List;
 
 /**
  * @author zlt
  */
-public interface ISysRoleUserService extends IService<SysRoleUser> {
+public interface ISysUserRoleService extends IService<SysUserRole> {
 	int deleteUserRole(Long userId, Long roleId);
 
 	int saveUserRoles(Long userId, Long roleId);

@@ -1,15 +1,18 @@
 spring:
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
   datasource:
     dynamic:
       enable: true
     druid:
       core:
-        url: jdbc:mysql://${mysql-host:127.0.0.1}:${mysql-port:3306}/mit-auth-server?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=UTC
+        url: jdbc:mysql://${mysql-host:127.0.0.1}:${mysql-port:3306}/mit-auth-server?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai
         username: ${mysql-user:root}
         password: ${mysql-password:123456}
         driver-class-name:  com.mysql.jdbc.Driver
       log:
-        url: jdbc:mysql://${mysql-host:127.0.0.1}:${mysql-port:3306}/mit-log-center?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=UTC
+        url: jdbc:mysql://${mysql-host:127.0.0.1}:${mysql-port:3306}/mit-log-center?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai
         username: ${mysql-user:root}
         password: ${mysql-password:123456}
         driver-class-name:  com.mysql.jdbc.Driver

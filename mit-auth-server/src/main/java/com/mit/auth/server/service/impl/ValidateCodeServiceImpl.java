@@ -1,7 +1,7 @@
 package com.mit.auth.server.service.impl;
 
 import com.mit.auth.server.service.IValidateCodeService;
-import com.mit.common.constant.UaaConstant;
+import com.mit.common.constant.SecurityConstants;
 import com.mit.common.redis.template.RedisRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -28,7 +28,7 @@ public class ValidateCodeServiceImpl implements IValidateCodeService {
      */
     @Override
     public void saveImageCode(String deviceId, String imageCode) {
-        redisRepository.setExpire(buildKey(deviceId), imageCode, UaaConstant.DEFAULT_IMAGE_EXPIRE);
+        redisRepository.setExpire(buildKey(deviceId), imageCode, SecurityConstants.DEFAULT_IMAGE_EXPIRE);
     }
 
     /**
@@ -80,6 +80,6 @@ public class ValidateCodeServiceImpl implements IValidateCodeService {
     }
 
     private String buildKey(String deviceId) {
-        return UaaConstant.DEFAULT_CODE_KEY + ":" + deviceId;
+        return SecurityConstants.DEFAULT_CODE_KEY + ":" + deviceId;
     }
 }

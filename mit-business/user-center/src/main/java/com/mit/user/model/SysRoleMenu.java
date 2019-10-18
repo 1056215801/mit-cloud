@@ -3,22 +3,26 @@ package com.mit.user.model;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /**
- * @author zlt
- * @date 2019/7/30
+ * 角色菜单表
  */
-@Setter
-@Getter
+@Data
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
 @TableName("sys_role_menu")
 public class SysRoleMenu extends Model<SysRoleMenu> {
+	/**
+	 * 角色id
+	 */
 	private Long roleId;
+	/**
+	 * 菜单id
+	 */
 	private Long menuId;
+
 }

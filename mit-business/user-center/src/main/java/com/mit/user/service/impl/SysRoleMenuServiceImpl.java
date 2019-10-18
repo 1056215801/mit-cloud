@@ -1,43 +1,60 @@
 package com.mit.user.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.mit.common.model.SysMenu;
 import com.mit.user.mapper.SysRoleMenuMapper;
 import com.mit.user.model.SysRoleMenu;
 import com.mit.user.service.ISysRoleMenuService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
- * @author zlt
+ *
  */
 @Slf4j
 @Service
 public class SysRoleMenuServiceImpl extends ServiceImpl<SysRoleMenuMapper, SysRoleMenu> implements ISysRoleMenuService {
- 	@Resource
-	private SysRoleMenuMapper sysRoleMenuMapper;
 
-	@Override
-	public int save(Long roleId, Long menuId) {
-		return sysRoleMenuMapper.save(roleId, menuId);
-	}
+	@Autowired(required = false)
+	private CacheManager cacheManager;
 
+	/**
+	 * @param role
+	 * @param roleId  角色
+	 * @param menuIds 菜单ID拼成的字符串，每个id之间根据逗号分隔
+	 * @return
+	 */
 	@Override
-	public int delete(Long roleId, Long menuId) {
-		return sysRoleMenuMapper.delete(roleId, menuId);
-	}
+	@Transactional(rollbackFor = Exception.class)
+	//@CacheEvict(value = "menu_details", key = "#roleId + '_menu'")
+	public Boolean saveRoleMenus(String role, Long roleId, String menuIds) {
+		this.remove(Wrappers.<SysRoleMenu>query().lambda()
+				.eq(SysRoleMenu::getRoleId, roleId));
 
-	@Override
-	public List<SysMenu> findMenusByRoleIds(Set<Long> roleIds, Integer type) {
-		return sysRoleMenuMapper.findMenusByRoleIds(roleIds, type);
-	}
+		if (StrUtil.isBlank(menuIds)) {
+			return Boolean.TRUE;
+		}
+		List<SysRoleMenu> roleMenuList = Arrays
+				.stream(menuIds.split(","))
+				.map(menuId -> {
+					SysRoleMenu roleMenu = new SysRoleMenu();
+					roleMenu.setRoleId(roleId);
+					roleMenu.setMenuId(Long.valueOf(menuId));
+					return roleMenu;
+				}).collect(Collectors.toList());
 
-	@Override
-	public List<SysMenu> findMenusByRoleCodes(Set<String> roleCodes, Integer type) {
-		return sysRoleMenuMapper.findMenusByRoleCodes(roleCodes, type);
+		//清空userinfo
+		//cacheManager.getCache("user_details").clear();
+		return this.saveBatch(roleMenuList);
 	}
 }

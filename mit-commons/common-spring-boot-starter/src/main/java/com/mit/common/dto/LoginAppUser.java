@@ -1,6 +1,8 @@
-package com.mit.common.model;
+package com.mit.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.mit.common.model.SysRole;
+import com.mit.common.model.SysUser;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
@@ -13,17 +15,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @author 作者 owen E-mail: 624191343@qq.com
- * @version 创建时间：2017年11月12日 上午22:57:51
  * 用户实体绑定spring security
  */
 @Getter
 @Setter
 public class LoginAppUser extends SysUser implements UserDetails {
-
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -3685249101751401211L;
 
 	private Set<SysRole> sysRoles;
@@ -40,9 +36,9 @@ public class LoginAppUser extends SysUser implements UserDetails {
 		if (!CollectionUtils.isEmpty(sysRoles)) {
 			sysRoles.parallelStream().forEach(role -> {
 				if (role.getCode().startsWith("ROLE_")) {
-					collection.add(new SimpleGrantedAuthority(role.getCode()));
+					collection.add(new SimpleGrantedAuthority(String.valueOf(role.getId())));
 				} else {
-					collection.add(new SimpleGrantedAuthority("ROLE_" + role.getCode()));
+					collection.add(new SimpleGrantedAuthority("ROLE_" + role.getId()));
 				}
 			});
 		}
@@ -84,6 +80,6 @@ public class LoginAppUser extends SysUser implements UserDetails {
 
 	@Override
 	public boolean isEnabled() {
-		return getEnabled();
+		return true;
 	}
 }

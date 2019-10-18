@@ -3,8 +3,8 @@ package com.mit.user.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mit.common.model.SysRole;
 import com.mit.user.mapper.SysUserRoleMapper;
-import com.mit.user.model.SysRoleUser;
-import com.mit.user.service.ISysRoleUserService;
+import com.mit.user.model.SysUserRole;
+import com.mit.user.service.ISysUserRoleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -12,11 +12,11 @@ import javax.annotation.Resource;
 import java.util.List;
 
 /**
- * @author zlt
+ *
  */
 @Slf4j
 @Service
-public class SysRoleUserServiceImpl extends ServiceImpl<SysUserRoleMapper, SysRoleUser> implements ISysRoleUserService {
+public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleMapper, SysUserRole> implements ISysUserRoleService {
  	@Resource
 	private SysUserRoleMapper sysUserRoleMapper;
 
