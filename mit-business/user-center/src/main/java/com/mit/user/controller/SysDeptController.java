@@ -1,5 +1,6 @@
 package com.mit.user.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.mit.common.dto.DeptTree;
 import com.mit.common.model.SysDept;
 import com.mit.common.web.Result;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -61,6 +63,18 @@ public class SysDeptController {
     @GetMapping(value = "/user-tree")
     public Result<List<DeptTree>> listCurrentUserDeptTrees() {
         return Result.succeed(sysDeptService.listCurrentUserDeptTrees());
+    }
+
+    /**
+     * 通过部门名称模糊查询
+     * @param name 部门名称
+     * @return
+     */
+    @GetMapping(value = "/filter")
+    public Result<List<SysDept>> filterByDeptName(@RequestParam(required = false) String name) {
+        QueryWrapper<SysDept> wrapper = new QueryWrapper<>();
+        wrapper.like("name", name);
+        return Result.succeed(sysDeptService.list(wrapper));
     }
 
     /**

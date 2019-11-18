@@ -1,5 +1,6 @@
 package com.mit.user;
 
+import com.mit.common.config.MybatisPlusConfig;
 import com.mit.log.annotation.EnableLogging;
 import com.mit.datasource.handler.MyMetaObjectHandler;
 import org.mybatis.spring.annotation.MapperScan;
@@ -25,7 +26,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableLogging
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableSwagger2
-@Import(MyMetaObjectHandler.class)
+@Import({MyMetaObjectHandler.class, MybatisPlusConfig.class})
 public class UserCenterApplication {
     public static void main(String[] args) {
         SpringApplication.run(UserCenterApplication.class, args);

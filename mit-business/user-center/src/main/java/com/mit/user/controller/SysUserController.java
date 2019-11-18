@@ -53,7 +53,7 @@ import java.util.Set;
 @Slf4j
 @RestController
 @RequestMapping("/user")
-@Api(tags = "用户管理模块api")
+@Api(tags = "用户管理")
 public class SysUserController {
     private static final String ADMIN_CHANGE_MSG = "超级管理员不给予修改";
 
@@ -63,7 +63,7 @@ public class SysUserController {
     /**
      * 查询用户实体对象SysUser
      */
-    @GetMapping(value = "/users/name/{username}")
+    @GetMapping(value = "/name/{username}")
     @ApiOperation(value = "根据用户名查询用户实体")
     //@Cacheable(value = "user", key = "#username")
     public Result<SysUser> selectByUsername(@PathVariable String username) {
@@ -101,6 +101,18 @@ public class SysUserController {
     @GetMapping("/{id}")
     public Result<UserVO> findUserById(@PathVariable Long id) {
         return Result.succeed(sysUserService.getUserVoById(id));
+    }
+
+    /**
+     * 通过用户名模糊查询
+     * @param username 用户名
+     * @return
+     */
+    @GetMapping("/filter")
+    public Result<List<SysUser>> filterByUserName(@RequestParam String username) {
+        QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.like("username", username);
+        return Result.succeed(sysUserService.list(queryWrapper));
     }
 
     /**

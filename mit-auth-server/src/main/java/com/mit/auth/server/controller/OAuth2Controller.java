@@ -27,6 +27,7 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -56,6 +57,9 @@ public class OAuth2Controller {
 
     @Autowired
     private ClientDetailsService clientDetailsService;
+
+    @Autowired
+    private TokenStore tokenStore;
 
     @ApiOperation(value = "用户名密码获取token")
     @PostMapping("/oauth/user/token")
@@ -110,5 +114,22 @@ public class OAuth2Controller {
             throw new UnapprovedClientAuthenticationException("clientSecret不匹配");
         }
         return clientDetails;
+    }
+
+    @ApiOperation(value = "移除token")
+    @PostMapping("/oauth/remove/token")
+    @LogAnnotation(module = "auth-server")
+    public void removeToken(String access_token) {
+        OAuth2AccessToken accessToken = tokenStore.readAccessToken(access_token);
+        if (accessToken != null) {
+            // 移除access_token
+            tokenStore.removeAccessToken(accessToken);
+
+            // 移除refresh_token
+            if (accessToken.getRefreshToken() != null) {
+                tokenStore.removeRefreshToken(accessToken.getRefreshToken());
+            }
+
+        }
     }
 }

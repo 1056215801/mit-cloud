@@ -19,9 +19,6 @@ import java.util.List;
 public class SysUser extends SuperEntity {
 	private static final long serialVersionUID = -5886012896705137070L;
 
-	@TableField(exist = false)
-	private List<SysRole> roles;
-
 	/**
 	 * 用户名（登录账号）
 	 */

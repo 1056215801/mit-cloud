@@ -32,4 +32,4 @@ spring:
 
 security:
   oauth2:
-    ignored: /user/users-anon/**
+    ignored: /user/users-anon/**, /user/filter, /dept/filter

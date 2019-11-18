@@ -13,6 +13,8 @@
     <packaging>pom</packaging>
     <modules>
         <module>user-center</module>
+        <module>workflow</module>
+        <module>event-handling</module>
     </modules>
 
 

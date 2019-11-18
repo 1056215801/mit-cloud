@@ -1,0 +1,29 @@
+spring:
+  mvc:
+    view:
+      prefix: /
+      suffix: .html
+#  resources:
+#    static-locations: classpath:/META-INF/resources/, classpath:/resources/, classpath:/static/, classpath:/public/, classpath:/view/
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  datasource:
+    url: jdbc:mysql://${mysql-host:127.0.0.1}:${mysql-port:3306}/mit-workflow?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai&nullCatalogMeansCurrent=true
+    username: ${mysql-user:root}
+    password: ${mysql-password:123456}
+    driver-class-name:  com.mysql.cj.jdbc.Driver
+
+  main:
+    allow-bean-definition-overriding: true
+
+flowable:
+  # 自动生成flowable相关表 第一次生成后建议关闭提高运行速度
+  database-schema-update: true
+  modeler:
+    app:
+      deployment-api-url: http://localhost:${server.port}/flowable-task/process-api
+
+logging:
+  level:
+    org.springframework.web: INFO

@@ -8,6 +8,8 @@ import feign.hystrix.FallbackFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * userService降级工场
  */
@@ -28,6 +30,13 @@ public class UserServiceFallbackFactory implements FallbackFactory<UserServiceFe
                 log.error("通过用户名查询用户异常:{}", username, throwable);
                 return null;
             }
+
+            @Override
+            public Result<List<SysUser>> filterByUserName(String username) {
+                log.error("通过用户名模糊查询用户异常:{}", username, throwable);
+                return null;
+            }
+
         };
     }
 }

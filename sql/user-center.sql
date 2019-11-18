@@ -33,7 +33,7 @@ CREATE TABLE `sys_user`  (
   `community_code` varchar(32) DEFAULT NULL COMMENT '小区编码',
   `community_name` varchar(32) DEFAULT NULL COMMENT '小区名称',
   `remark` varchar(64) DEFAULT NULL COMMENT '备注',
-  `last_login_time` timestamp NULL COMMENT '最后一次登录时间',
+  `last_login_time` datetime NULL COMMENT '最后一次登录时间',
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
   PRIMARY KEY (`id`),

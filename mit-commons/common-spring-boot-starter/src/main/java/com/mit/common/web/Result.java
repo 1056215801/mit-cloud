@@ -15,6 +15,10 @@ public class Result<T> implements Serializable {
     private Integer resp_code;
     private String resp_msg;
 
+    public static <T> Result<T> succeed() {
+        return succeedWith(null, CodeEnum.SUCCESS.getCode(), "操作成功");
+    }
+
     public static <T> Result<T> succeed(String msg) {
         return succeedWith(null, CodeEnum.SUCCESS.getCode(), msg);
     }
@@ -24,11 +28,15 @@ public class Result<T> implements Serializable {
     }
 
     public static <T> Result<T> succeed(T model) {
-        return succeedWith(model, CodeEnum.SUCCESS.getCode(), "");
+        return succeedWith(model, CodeEnum.SUCCESS.getCode(), "操作成功");
     }
 
     public static <T> Result<T> succeedWith(T datas, Integer code, String msg) {
         return new Result<>(datas, code, msg);
+    }
+
+    public static <T> Result<T> failed() {
+        return succeedWith(null, CodeEnum.ERROR.getCode(), "操作失败");
     }
 
     public static <T> Result<T> failed(String msg) {
