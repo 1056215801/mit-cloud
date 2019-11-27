@@ -42,17 +42,16 @@ public class EventBaseInfoQueryDTO {
     private Date happenedTimeEnd;
 
     @ApiModelProperty(value = "当前页")
-    private Integer pageNumber = 1;
+    private Integer pageNumber;
     @ApiModelProperty(value = "页大小")
-    private Integer pageSize = 10;
+    private Integer pageSize;
 
     @ApiModelProperty(hidden = true)
     private Integer offset;
     @ApiModelProperty(hidden = true)
     private Integer limit;
 
-    @ApiModelProperty(hidden = true)
-    public Integer getOffSet() {
+    public Integer getOffset() {
         return (pageNumber - 1) * pageSize;
     }
     public Integer getLimit() {

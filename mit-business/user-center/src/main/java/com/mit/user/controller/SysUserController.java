@@ -120,7 +120,7 @@ public class SysUserController {
      * @param userDTO 用户对象
      */
     @PostMapping
-    @PreAuthorize("hasAuthority('" + UpmsPermissionCode.SYS_USER_ADD + "')")
+    //@PreAuthorize("hasAuthority('" + UpmsPermissionCode.SYS_USER_ADD + "')")
     //@CachePut(value = "user", key = "#sysUser.username")
     public Result saveSysUser(@RequestBody UserDTO userDTO) {
         return Result.succeed(sysUserService.saveOrUpdateUser(userDTO));
@@ -131,7 +131,7 @@ public class SysUserController {
      * @param userDTO 用户对象
      */
     @PutMapping
-    @PreAuthorize("hasAuthority('" + UpmsPermissionCode.SYS_USER_EDIT + "')")
+    //@PreAuthorize("hasAuthority('" + UpmsPermissionCode.SYS_USER_EDIT + "')")
     //@CachePut(value = "user", key = "#sysUser.username")
     public Result updateSysUser(@RequestBody UserDTO userDTO) {
         if (null == userDTO.getId()) {

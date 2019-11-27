@@ -1,7 +1,6 @@
 package com.mit.event.controller;
 
 import cn.hutool.core.util.EnumUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.mit.common.web.Result;
 import com.mit.event.dto.EventBaseInfoQueryDTO;
 import com.mit.event.enums.EventClassificationEnum;
@@ -9,8 +8,6 @@ import com.mit.event.enums.EventEnum;
 import com.mit.event.enums.EventSourceEnum;
 import com.mit.event.enums.EventStatusEnum;
 import com.mit.event.enums.EventTypeEnum;
-import com.mit.event.model.EventBaseInfo;
-import com.mit.event.model.EventConfig;
 import com.mit.event.service.IControlPersonnelAppearService;
 import com.mit.event.service.IEventBaseInfoService;
 import com.mit.event.service.IEventConfigService;
@@ -27,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -51,31 +47,31 @@ public class EventQueryController {
 
     @ApiOperation(value = "根据条件获取事件基本信息")
     @GetMapping(value = "/baseInfo/byCondition")
-    public Result queryBaseInfoByCondition(@Valid EventBaseInfoQueryDTO baseInfoQueryDTO) {
+    public Result queryBaseInfoByCondition(@RequestBody @Valid EventBaseInfoQueryDTO baseInfoQueryDTO) {
         if (!CollectionUtils.isEmpty(baseInfoQueryDTO.getEventCode())) {
             List<String> list = baseInfoQueryDTO.getEventCode().stream().filter(eventCode ->
-                    null == EnumUtil.likeValueOf(EventEnum.class, eventCode)).collect(Collectors.toList());
+                    null == EnumUtil.likeValueOf(EventEnum.class, eventCode.toUpperCase())).collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(list)) {
                 return Result.failed("事件标识不匹配，请检查拼写是否正确");
             }
         }
         if (!CollectionUtils.isEmpty(baseInfoQueryDTO.getClassification())) {
             List<String> list = baseInfoQueryDTO.getClassification().stream().filter(classification ->
-                    null == EnumUtil.likeValueOf(EventClassificationEnum.class, classification)).collect(Collectors.toList());
+                    null == EnumUtil.likeValueOf(EventClassificationEnum.class, classification.toUpperCase())).collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(list)) {
                 return Result.failed("事件大分类标识不匹配，请检查拼写是否正确");
             }
         }
         if (!CollectionUtils.isEmpty(baseInfoQueryDTO.getType())) {
             List<String> list = baseInfoQueryDTO.getType().stream().filter(type ->
-                    null == EnumUtil.likeValueOf(EventTypeEnum.class, type)).collect(Collectors.toList());
+                    null == EnumUtil.likeValueOf(EventTypeEnum.class, type.toUpperCase())).collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(list)) {
                 return Result.failed("事件类型标识不匹配，请检查拼写是否正确");
             }
         }
         if (!CollectionUtils.isEmpty(baseInfoQueryDTO.getSource())) {
             List<String> list = baseInfoQueryDTO.getSource().stream().filter(source ->
-                    null == EnumUtil.likeValueOf(EventSourceEnum.class, source)).collect(Collectors.toList());
+                    null == EnumUtil.likeValueOf(EventSourceEnum.class, source.toUpperCase())).collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(list)) {
                 return Result.failed("事件来源标识不匹配，请检查拼写是否正确");
             }

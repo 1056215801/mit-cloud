@@ -36,12 +36,12 @@ CREATE TABLE `event_base_info`(
    `event_name` varchar(64) NOT NULL COMMENT '事件名称',
    `event_code` varchar(64) NOT NULL COMMENT '事件标识',
    `happened_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '事件触发时间',
-   `emergency_level` tinyint(1) DEFAULT NULL COMMENT '事件紧急程度',
-   `severity` tinyint(1) DEFAULT NULL COMMENT '事件严重程度',
+   `emergency_level` tinyint(2) DEFAULT NULL COMMENT '事件紧急程度',
+   `severity` tinyint(2) DEFAULT NULL COMMENT '事件严重程度',
    `community_code` varchar(64) DEFAULT NULL COMMENT '事件发生所在小区code',
    `longitude` varchar(32) DEFAULT NULL COMMENT '经度',
    `latitude` varchar(32) DEFAULT NULL COMMENT '纬度',
-   `status` tinyint(1) DEFAULT NULL COMMENT '事件状态',
+   `status` tinyint(2) DEFAULT NULL COMMENT '事件状态',
    `process_instance_id` varchar(64) DEFAULT NULL COMMENT '对应流程实例id',
    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB CHARACTER SET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=Dynamic COMMENT='事件基础信息表';

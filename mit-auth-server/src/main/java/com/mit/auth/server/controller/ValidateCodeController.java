@@ -25,7 +25,7 @@ public class ValidateCodeController {
      *
      * @throws Exception
      */
-    @GetMapping("/validata/code/{deviceId}")
+    @GetMapping("/validate/code/{deviceId}")
     public void createCode(@PathVariable String deviceId, HttpServletResponse response) throws Exception {
         Assert.notNull(deviceId, "机器码不能为空");
         // 设置请求头为输出图片类型
