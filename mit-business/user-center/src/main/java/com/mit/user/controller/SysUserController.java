@@ -140,7 +140,7 @@ public class SysUserController {
         if (null == userDTO.getId()) {
             return Result.failed("用户ID不能为空");
         }
-        return Result.succeed(sysUserService.updateById(userDTO));
+        return Result.succeed(sysUserService.updateUserById(userDTO));
     }
 
     /**
@@ -154,7 +154,7 @@ public class SysUserController {
         if (null == userDTO.getUsername()) {
             return Result.failed("用户名不能为空");
         }
-        return Result.succeed(sysUserService.updateById(userDTO));
+        return Result.succeed(sysUserService.updateUserByUsername(userDTO));
     }
 
 

@@ -130,7 +130,26 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean updateUser(UserDTO userDto) {
+    public Boolean updateUserById(UserDTO userDto) {
+        SysUser sysUser = this.getById(userDto.getId());
+        BeanUtils.copyProperties(userDto, sysUser);
+        baseMapper.updateById(sysUser);
+        if (CollectionUtils.isEmpty(userDto.getRole())) {
+            return true;
+        }
+        List<SysUserRole> userRoleList = userDto.getRole()
+                .stream().map(roleId -> {
+                    SysUserRole userRole = new SysUserRole();
+                    userRole.setUserId(sysUser.getId());
+                    userRole.setRoleId(roleId);
+                    return userRole;
+                }).collect(Collectors.toList());
+        return sysUserRoleService.updateBatchById(userRoleList);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean updateUserByUsername(UserDTO userDto) {
         SysUser sysUser = this.getUserByUsername(userDto.getUsername());
         BeanUtils.copyProperties(userDto, sysUser);
         baseMapper.updateById(sysUser);

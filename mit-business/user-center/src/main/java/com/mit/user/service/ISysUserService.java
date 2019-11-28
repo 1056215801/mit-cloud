@@ -49,11 +49,18 @@ public interface ISysUserService extends IService<SysUser> {
 	Boolean saveUser(UserDTO userDto);
 
 	/**
-	 * 保存用户信息
+	 * 修改用户信息
 	 * @param userDto DTO 对象
 	 * @return success/fail
 	 */
-	Boolean updateUser(UserDTO userDto);
+	Boolean updateUserById(UserDTO userDto);
+
+	/**
+	 * 修改用户信息
+	 * @param userDto DTO 对象
+	 * @return success/fail
+	 */
+	Boolean updateUserByUsername(UserDTO userDto);
 
 	SysUser getUserByUsername(String username);
 
