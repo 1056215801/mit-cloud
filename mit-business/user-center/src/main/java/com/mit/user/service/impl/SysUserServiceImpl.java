@@ -1,23 +1,18 @@
 package com.mit.user.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.mit.common.constant.CommonConstant;
 import com.mit.common.dto.LoginAppUser;
 import com.mit.common.model.SuperEntity;
 import com.mit.common.model.SysMenu;
 import com.mit.common.model.SysRole;
 import com.mit.common.model.SysUser;
-import com.mit.common.web.PageResult;
-import com.mit.common.web.Result;
 import com.mit.user.dto.UserDTO;
 import com.mit.user.mapper.SysUserMapper;
 import com.mit.user.model.SysUserRole;
-import com.mit.user.model.SysUserExcel;
 import com.mit.user.service.ISysDeptService;
 import com.mit.user.service.ISysMenuService;
 import com.mit.user.service.ISysRoleService;
@@ -25,9 +20,7 @@ import com.mit.user.service.ISysUserRoleService;
 import com.mit.user.service.ISysUserService;
 import com.mit.user.vo.UserVO;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,11 +28,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -121,10 +111,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean saveOrUpdateUser(UserDTO userDto) {
+    public Boolean saveUser(UserDTO userDto) {
         SysUser sysUser = new SysUser();
         BeanUtils.copyProperties(userDto, sysUser);
         baseMapper.insert(sysUser);
+        if (CollectionUtils.isEmpty(userDto.getRole())) {
+            return true;
+        }
         List<SysUserRole> userRoleList = userDto.getRole()
                 .stream().map(roleId -> {
                     SysUserRole userRole = new SysUserRole();
@@ -133,6 +126,32 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                     return userRole;
                 }).collect(Collectors.toList());
         return sysUserRoleService.saveBatch(userRoleList);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean updateUser(UserDTO userDto) {
+        SysUser sysUser = this.getUserByUsername(userDto.getUsername());
+        BeanUtils.copyProperties(userDto, sysUser);
+        baseMapper.updateById(sysUser);
+        if (CollectionUtils.isEmpty(userDto.getRole())) {
+            return true;
+        }
+        List<SysUserRole> userRoleList = userDto.getRole()
+                .stream().map(roleId -> {
+                    SysUserRole userRole = new SysUserRole();
+                    userRole.setUserId(sysUser.getId());
+                    userRole.setRoleId(roleId);
+                    return userRole;
+                }).collect(Collectors.toList());
+        return sysUserRoleService.updateBatchById(userRoleList);
+    }
+
+    @Override
+    public SysUser getUserByUsername(String username) {
+        QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", username);
+        return baseMapper.selectOne(queryWrapper);
     }
 
     /**

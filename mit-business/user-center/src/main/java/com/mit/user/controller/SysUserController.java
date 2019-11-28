@@ -123,7 +123,10 @@ public class SysUserController {
     //@PreAuthorize("hasAuthority('" + UpmsPermissionCode.SYS_USER_ADD + "')")
     //@CachePut(value = "user", key = "#sysUser.username")
     public Result saveSysUser(@RequestBody UserDTO userDTO) {
-        return Result.succeed(sysUserService.saveOrUpdateUser(userDTO));
+        if (sysUserService.getUserByUsername(userDTO.getUsername()) != null) {
+            return Result.failed("用户名重复");
+        }
+        return Result.succeed(sysUserService.saveUser(userDTO));
     }
 
     /**
@@ -136,6 +139,20 @@ public class SysUserController {
     public Result updateSysUser(@RequestBody UserDTO userDTO) {
         if (null == userDTO.getId()) {
             return Result.failed("用户ID不能为空");
+        }
+        return Result.succeed(sysUserService.updateById(userDTO));
+    }
+
+    /**
+     * 根据用户名修改用户
+     * @param userDTO 用户对象
+     */
+    @PutMapping(value = "/updateByUsername")
+    //@PreAuthorize("hasAuthority('" + UpmsPermissionCode.SYS_USER_EDIT + "')")
+    //@CachePut(value = "user", key = "#sysUser.username")
+    public Result updateSysUserByUsername(@RequestBody UserDTO userDTO) {
+        if (null == userDTO.getUsername()) {
+            return Result.failed("用户名不能为空");
         }
         return Result.succeed(sysUserService.updateById(userDTO));
     }
