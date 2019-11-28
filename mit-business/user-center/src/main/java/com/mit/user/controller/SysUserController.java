@@ -116,6 +116,18 @@ public class SysUserController {
     }
 
     /**
+     * 通过小区code查询用户
+     * @param communityCode 小区code
+     * @return
+     */
+    @GetMapping("/query/byCommunityCode")
+    public Result<SysUser> findByCommunityCode(@RequestParam String communityCode) {
+        QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("community_code", communityCode);
+        return Result.succeed(sysUserService.getOne(queryWrapper));
+    }
+
+    /**
      * 新增用户
      * @param userDTO 用户对象
      */
