@@ -114,7 +114,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     public Boolean saveUser(UserDTO userDto) {
         SysUser sysUser = new SysUser();
         BeanUtils.copyProperties(userDto, sysUser);
-        passwordEncoder.encode(sysUser.getPassword());
+        sysUser.setPassword(passwordEncoder.encode(userDto.getPassword()));
         baseMapper.insert(sysUser);
         if (CollectionUtils.isEmpty(userDto.getRole())) {
             return true;
@@ -134,7 +134,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     public Boolean updateUserById(UserDTO userDto) {
         SysUser sysUser = this.getById(userDto.getId());
         BeanUtils.copyProperties(userDto, sysUser);
-        passwordEncoder.encode(sysUser.getPassword());
+        sysUser.setPassword(passwordEncoder.encode(userDto.getPassword()));
         baseMapper.updateById(sysUser);
         if (CollectionUtils.isEmpty(userDto.getRole())) {
             return true;
@@ -154,7 +154,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     public Boolean updateUserByUsername(UserDTO userDto) {
         SysUser sysUser = this.getUserByUsername(userDto.getUsername());
         BeanUtils.copyProperties(userDto, sysUser);
-        passwordEncoder.encode(sysUser.getPassword());
+        sysUser.setPassword(passwordEncoder.encode(userDto.getPassword()));
         baseMapper.updateById(sysUser);
         if (CollectionUtils.isEmpty(userDto.getRole())) {
             return true;
