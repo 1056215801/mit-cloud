@@ -11,4 +11,6 @@ public class ServiceNameConstant {
     public static final String USER_SERVICE = "user-center";
 
     public static final String WORKFLOW_SERVICE = "workflow";
+
+    public static final String COMMUNITY_SERVICE = "web-community-wanli";
 }

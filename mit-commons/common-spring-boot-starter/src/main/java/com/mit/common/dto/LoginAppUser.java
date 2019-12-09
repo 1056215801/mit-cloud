@@ -12,6 +12,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -25,6 +26,8 @@ public class LoginAppUser extends SysUser implements UserDetails {
 	private Set<SysRole> sysRoles;
 
 	private Set<String> permissions;
+
+	private List<ClusterCommunity> communityList;
 
 	/***
 	 * 权限重写

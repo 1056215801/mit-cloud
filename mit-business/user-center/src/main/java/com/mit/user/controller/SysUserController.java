@@ -89,7 +89,12 @@ public class SysUserController {
     @ApiOperation(value = "获取当前登录用户信息")
     @GetMapping("/info")
     public Result<LoginAppUser> info() {
-        String username = Objects.requireNonNull(SecurityUtils.getUser()).getUsername();
+        String username = "";
+        try {
+            username = Objects.requireNonNull(SecurityUtils.getUser()).getUsername();
+        } catch (Exception e) {
+            return Result.failed("未登录");
+        }
         return Result.succeed(sysUserService.getLoginAppUser(username));
     }
 
