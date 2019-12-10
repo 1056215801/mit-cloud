@@ -1,9 +1,12 @@
 package com.mit.user.controller;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mit.common.constant.CommonConstant;
+import com.mit.common.dto.ClusterCommunity;
 import com.mit.common.dto.LoginAppUser;
 import com.mit.common.model.SysRole;
 import com.mit.common.model.SysUser;
@@ -14,6 +17,7 @@ import com.mit.common.web.Result;
 import com.mit.log.annotation.LogAnnotation;
 import com.mit.user.constant.UpmsPermissionCode;
 import com.mit.user.dto.UserDTO;
+import com.mit.user.feign.CommunityFeign;
 import com.mit.user.model.SysUserExcel;
 import com.mit.user.service.ISysUserService;
 import com.mit.user.vo.UserVO;
@@ -39,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -59,6 +64,9 @@ public class SysUserController {
 
     @Autowired
     private ISysUserService sysUserService;
+
+    @Resource
+    private CommunityFeign communityFeign;
 
     /**
      * 查询用户实体对象SysUser
@@ -95,7 +103,35 @@ public class SysUserController {
         } catch (Exception e) {
             return Result.failed("未登录");
         }
-        return Result.succeed(sysUserService.getLoginAppUser(username));
+        LoginAppUser user = sysUserService.getLoginAppUser(username);
+        List<ClusterCommunity> communityList = new ArrayList<>();
+        switch (user.getLevel()) {
+            case 1:
+                //总账号admin
+                try {
+                    List list = communityFeign.getCommunityList(null, null, null,
+                            null, null, null, null, null,
+                            null, 1, 65535).getDatas().getRecords();
+
+                    list.stream().forEach(object -> {
+                        ClusterCommunity community = JSON.parseObject(JSON.toJSONString(object), new TypeReference<ClusterCommunity>(){});
+                        communityList.add(community);
+                    });
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                    return Result.failed("调用小区服务查询小区列表异常");
+                }
+                break;
+            case 8:
+                //小区账号
+                ClusterCommunity community = new ClusterCommunity(user);
+                communityList.add(community);
+                break;
+            default:
+                break;
+        }
+        user.setCommunityList(communityList);
+        return Result.succeed(user);
     }
 
     /**

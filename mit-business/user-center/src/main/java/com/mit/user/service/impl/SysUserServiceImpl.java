@@ -1,9 +1,6 @@
 package com.mit.user.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.bean.copier.CopyOptions;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -13,9 +10,7 @@ import com.mit.common.model.SuperEntity;
 import com.mit.common.model.SysMenu;
 import com.mit.common.model.SysRole;
 import com.mit.common.model.SysUser;
-import com.mit.common.dto.ClusterCommunity;
 import com.mit.user.dto.UserDTO;
-import com.mit.user.feign.CommunityFeign;
 import com.mit.user.mapper.SysUserMapper;
 import com.mit.user.model.SysUserRole;
 import com.mit.user.service.ISysDeptService;
@@ -33,8 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -61,9 +54,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Autowired
     private ISysDeptService sysDeptService;
-
-    @Resource
-    private CommunityFeign communityFeign;
 
     @Override
     public LoginAppUser getLoginAppUser(String username) {
@@ -97,33 +87,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 });
                 loginAppUser.setPermissions(permissions);
             }
-
-            List<ClusterCommunity> communityList = new ArrayList<>();
-            switch (sysUser.getLevel()) {
-                case 1:
-                    //总账号admin
-                    try {
-                        List list = communityFeign.getCommunityList(null, null, null,
-                                null, null, null, null, null,
-                                null, 1, 65535).getDatas().getRecords();
-
-                        list.stream().forEach(object -> {
-                            ClusterCommunity community = JSON.parseObject(JSON.toJSONString(object), new TypeReference<ClusterCommunity>(){});
-                            communityList.add(community);
-                        });
-                    } catch (Exception e) {
-                        log.error(e.getMessage());
-                    }
-                    break;
-                case 8:
-                    //小区账号
-                    ClusterCommunity community = new ClusterCommunity(sysUser);
-                    communityList.add(community);
-                    break;
-                default:
-                    break;
-            }
-            loginAppUser.setCommunityList(communityList);
             return loginAppUser;
         }
         return null;
