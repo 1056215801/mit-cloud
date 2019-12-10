@@ -172,7 +172,7 @@ public class SysUserController {
      * 新增用户
      * @param userDTO 用户对象
      */
-    @PostMapping
+    @PostMapping(value = "/save")
     //@PreAuthorize("hasAuthority('" + UpmsPermissionCode.SYS_USER_ADD + "')")
     //@CachePut(value = "user", key = "#sysUser.username")
     public Result saveSysUser(@RequestBody UserDTO userDTO) {
@@ -197,7 +197,7 @@ public class SysUserController {
     }
 
     /**
-     * 根据用户名修改用户
+     * 根据用户名修改用户，小区服务调用
      * @param userDTO 用户对象
      */
     @PutMapping(value = "/updateByUsername")

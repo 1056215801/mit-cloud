@@ -153,8 +153,16 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Transactional(rollbackFor = Exception.class)
     public Boolean updateUserByUsername(UserDTO userDto) {
         SysUser sysUser = this.getUserByUsername(userDto.getUsername());
-        BeanUtils.copyProperties(userDto, sysUser);
-        sysUser.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        //BeanUtils.copyProperties(userDto, sysUser);
+        if (StringUtils.isNotEmpty(userDto.getNickname())) {
+            sysUser.setNickname(userDto.getNickname());
+        }
+        if (StringUtils.isNotEmpty(userDto.getPassword())) {
+            sysUser.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        }
+        if (StringUtils.isNotEmpty(userDto.getMobile())) {
+            sysUser.setMobile(userDto.getMobile());
+        }
         baseMapper.updateById(sysUser);
         if (CollectionUtils.isEmpty(userDto.getRole())) {
             return true;

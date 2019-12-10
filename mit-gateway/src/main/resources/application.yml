@@ -43,10 +43,21 @@ spring:
           filters:
             - StripPrefix=0
 
+        - id: camera-manager
+          uri: lb://camera-server
+          predicates:
+            - Path=/cloud-service/**
+          filters:
+            - StripPrefix=0
+
 server:
   port: 8765
 
 eureka:
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}
+    hostname: ${spring.application.name}
   client:
     service-url:
       # eureka-server的地址，这里开启了身份验证
