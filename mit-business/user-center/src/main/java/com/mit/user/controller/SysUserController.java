@@ -109,9 +109,7 @@ public class SysUserController {
             case 1:
                 //总账号admin
                 try {
-                    List list = communityFeign.getCommunityList(null, null, null,
-                            null, null, null, null, null,
-                            null, 1, 65535).getDatas().getRecords();
+                    List list = communityFeign.getCommunityList().getDatas();
 
                     list.stream().forEach(object -> {
                         ClusterCommunity community = JSON.parseObject(JSON.toJSONString(object), new TypeReference<ClusterCommunity>(){});
