@@ -282,6 +282,23 @@ public class SysUserController {
     }
 
     /**
+     * 根据communityCode删除用户
+     * @param communityCode 小区code
+     * @return
+     */
+    @DeleteMapping(value = "/deleteByCommunityCode")
+    public Result deleteByCommunityCode(@RequestParam String communityCode) {
+        QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("community_code", communityCode);
+        SysUser sysUser = sysUserService.getOne(queryWrapper);
+        if ("admin".equals(sysUser.getUsername())) {
+            return Result.failed(ADMIN_CHANGE_MSG);
+        }
+        sysUserService.removeById(sysUser.getId());
+        return Result.succeed("删除成功");
+    }
+
+    /**
      * 导出excel
      *
      * @return
