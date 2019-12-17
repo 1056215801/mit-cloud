@@ -291,6 +291,9 @@ public class SysUserController {
         QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("community_code", communityCode);
         SysUser sysUser = sysUserService.getOne(queryWrapper);
+        if (sysUser == null) {
+            return Result.failed("该小区未绑定用户");
+        }
         if ("admin".equals(sysUser.getUsername())) {
             return Result.failed(ADMIN_CHANGE_MSG);
         }
