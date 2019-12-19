@@ -13,9 +13,9 @@ import java.util.Date;
 public class WiFiDeviceStatusDTO {
 
     public WiFiDeviceStatusDTO(DeviceStatusStruct deviceStatusStruct) {
-        this.indexCode = ByteUtils.byte2String(ByteUtils.unsignedByte2Bytes(deviceStatusStruct.getIndexCode()));
+        this.indexCode = ByteUtils.byte2String(ByteUtils.unsignedByte2Bytes(deviceStatusStruct.getIndexCode())).trim();
         this.status = deviceStatusStruct.getStatus();
-        this.mac = ByteUtils.byte2String(ByteUtils.unsignedByte2Bytes(deviceStatusStruct.getSourceMacAddr()));
+        this.mac = ByteUtils.byte2HexString(ByteUtils.unsignedByte2Bytes(deviceStatusStruct.getSourceMacAddr()));
         this.acquisitionTime = new Date(deviceStatusStruct.getAcquisitionTime() * 1000);
     }
 

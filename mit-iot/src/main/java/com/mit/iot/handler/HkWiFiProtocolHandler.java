@@ -1,6 +1,7 @@
 package com.mit.iot.handler;
 
 import cn.hutool.core.util.EnumUtil;
+import com.mit.common.utils.SpringUtils;
 import com.mit.iot.dto.hkwifi.WiFiDeviceStatusDTO;
 import com.mit.iot.dto.hkwifi.WiFiGeolocationDTO;
 import com.mit.iot.enums.hkwifi.InfoTypeEnum;
@@ -14,14 +15,15 @@ import com.mit.iot.protocol.hkwifi.TerminalStruct;
 import com.mit.iot.service.IWiFiProbeApService;
 import com.mit.iot.service.IWiFiProbeService;
 import com.mit.iot.service.IWiFiProbeTerminalService;
+import com.mit.iot.service.impl.WiFiProbeApServiceImpl;
+import com.mit.iot.service.impl.WiFiProbeServiceImpl;
+import com.mit.iot.service.impl.WiFiProbeTerminalServiceImpl;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,14 +37,17 @@ public class HkWiFiProtocolHandler extends SimpleChannelInboundHandler<Object> {
     // 最短长度，此处为报文头部长度
     private static final int MIN_LEN = 24;
 
-    @Resource
-    private IWiFiProbeService wiFiProbeService;
+    private static IWiFiProbeService wiFiProbeService;
 
-    @Resource
-    private IWiFiProbeApService wiFiProbeApService;
+    private static IWiFiProbeApService wiFiProbeApService;
 
-    @Resource
-    private IWiFiProbeTerminalService wiFiProbeTerminalService;
+    private static IWiFiProbeTerminalService wiFiProbeTerminalService;
+
+    static {
+        wiFiProbeService = SpringUtils.getBean(WiFiProbeServiceImpl.class);
+        wiFiProbeApService = SpringUtils.getBean(WiFiProbeApServiceImpl.class);
+        wiFiProbeTerminalService = SpringUtils.getBean(WiFiProbeTerminalServiceImpl.class);
+    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -124,11 +129,11 @@ public class HkWiFiProtocolHandler extends SimpleChannelInboundHandler<Object> {
         ByteBuf byteBuf = Unpooled.buffer(body.length);
         byteBuf.writeBytes(body);
         List<TerminalStruct> list = new ArrayList<>();
-        for (int i=0; i<(int)headerStruct.getInfoNum(); i++) {
+        for (int i=0; i<headerStruct.getInfoNum(); i++) {
             int length = byteBuf.readUnsignedShort();
             short[] sourceMacAddr = new short[6];
-            for (short b : sourceMacAddr) {
-                b = byteBuf.readUnsignedByte();
+            for (int j=0; j<6; j++) {
+                sourceMacAddr[j] = byteBuf.readUnsignedByte();
             }
 
             long firstAcquisitionTime = byteBuf.readUnsignedInt();
@@ -145,23 +150,23 @@ public class HkWiFiProtocolHandler extends SimpleChannelInboundHandler<Object> {
             }
 
             short[] indexCode = new short[64];
-            for (short b : indexCode) {
-                b = byteBuf.readUnsignedByte();
+            for (int j=0; j<64; j++) {
+                indexCode[j] = byteBuf.readUnsignedByte();
             }
 
             short[] connectedMacAddr = new short[6];
-            for (short b : connectedMacAddr) {
-                b = byteBuf.readUnsignedByte();
+            for (int j=0; j<6; j++) {
+                connectedMacAddr[j] = byteBuf.readUnsignedByte();
             }
 
             short[] phoneBrand = new short[16];
-            for (short b : phoneBrand) {
-                b = byteBuf.readUnsignedByte();
+            for (int j=0; j<16; j++) {
+                phoneBrand[j] = byteBuf.readUnsignedByte();
             }
 
             short[] res = new short[10];
-            for (short b : res) {
-                b = byteBuf.readUnsignedByte();
+            for (int j=0; j<10; j++) {
+                res[j] = byteBuf.readUnsignedByte();
             }
 
             TerminalStruct terminalStruct = new TerminalStruct(length, sourceMacAddr, firstAcquisitionTime,
@@ -183,25 +188,33 @@ public class HkWiFiProtocolHandler extends SimpleChannelInboundHandler<Object> {
         ByteBuf byteBuf = Unpooled.buffer(body.length);
         byteBuf.writeBytes(body);
         List<APStruct> list = new ArrayList<>();
-        for (int i=0; i<(int)headerStruct.getInfoNum(); i++) {
-            short length = byteBuf.readShort();
-            byte[] sourceMacAddr = new byte[6];
-            byteBuf.readBytes(sourceMacAddr);
+        for (int i=0; i<headerStruct.getInfoNum(); i++) {
+            int length = byteBuf.readShort();
+            short[] sourceMacAddr = new short[6];
+            for (int j=0; j<6; j++) {
+                sourceMacAddr[j] = byteBuf.readUnsignedByte();
+            }
 
-            int firstAcquisitionTime = byteBuf.readInt();
-            int lastAcquisitionTime = byteBuf.readInt();
-            short scanTime = byteBuf.readShort();
-            byte wifiFieldIntensity = byteBuf.readByte();
-            byte wifiSpotEncryptType = byteBuf.readByte();
+            long firstAcquisitionTime = byteBuf.readUnsignedInt();
+            long lastAcquisitionTime = byteBuf.readUnsignedInt();
+            int scanTime = byteBuf.readUnsignedShort();
+            short wifiFieldIntensity = byteBuf.readUnsignedByte();
+            short wifiSpotEncryptType = byteBuf.readUnsignedByte();
 
-            int channel = byteBuf.readInt();
-            byte[] ssid = new byte[32];
-            byteBuf.readBytes(ssid);
+            long channel = byteBuf.readUnsignedInt();
+            short[] ssid = new short[32];
+            for (int j=0; j<32; j++) {
+                ssid[j] = byteBuf.readUnsignedByte();
+            }
 
-            byte[] indexCode = new byte[64];
-            byteBuf.readBytes(indexCode);
-            byte[] res = new byte[32];
-            byteBuf.readBytes(res);
+            short[] indexCode = new short[64];
+            for (int j=0; j<64; j++) {
+                indexCode[j] = byteBuf.readUnsignedByte();
+            }
+            short[] res = new short[32];
+            for (int j=0; j<32; j++) {
+                res[j] = byteBuf.readUnsignedByte();
+            }
 
             APStruct apStruct = new APStruct(length, sourceMacAddr, firstAcquisitionTime, lastAcquisitionTime,
                     scanTime, wifiFieldIntensity, wifiSpotEncryptType, channel, ssid, indexCode, res);
@@ -211,25 +224,44 @@ public class HkWiFiProtocolHandler extends SimpleChannelInboundHandler<Object> {
         return list;
     }
 
+    /**
+     * 解析设备地理位置信息
+     * @param headerStruct 消息头
+     * @param body 消息体字节
+     * @return list
+     */
     private List<GeolocationStruct> decodeGeolocationInfo(HeaderStruct headerStruct, byte[] body) {
         ByteBuf byteBuf = Unpooled.buffer(body.length);
         byteBuf.writeBytes(body);
         List<GeolocationStruct> list = new ArrayList<>();
-        for (int i=0; i<(int)headerStruct.getInfoNum(); i++) {
-            short length = byteBuf.readShort();
-            byte[] indexCode = new byte[64];
-            byteBuf.readBytes(indexCode);
+        for (int i=0; i<headerStruct.getInfoNum(); i++) {
+            int length = byteBuf.readUnsignedShort();
+            short[] indexCode = new short[64];
+            for (int j=0; j<64; j++) {
+                indexCode[j] = byteBuf.readUnsignedByte();
+            }
 
-            byte[] longitude = new byte[10];
-            byteBuf.readBytes(longitude);
-            byte[] latitude = new byte[10];
-            byteBuf.readBytes(latitude);
-            byte[] siteCode = new byte[14];
-            byteBuf.readBytes(siteCode);
+            short[] longitude = new short[10];
+            for (int j=0; j<10; j++) {
+                longitude[j] = byteBuf.readUnsignedByte();
+            }
 
-            int acquisitionTime = byteBuf.readInt();
-            byte[] res = new byte[152];
-            byteBuf.readBytes(res);
+            short[] latitude = new short[10];
+            for (int j=0; j<10; j++) {
+                latitude[j] = byteBuf.readUnsignedByte();
+            }
+
+            short[] siteCode = new short[14];
+            for (int j=0; j<14; j++) {
+                siteCode[j] = byteBuf.readUnsignedByte();
+            }
+
+            long acquisitionTime = byteBuf.readUnsignedInt();
+
+            short[] res = new short[152];
+            for (int j=0; j<152; j++) {
+                res[j] = byteBuf.readUnsignedByte();
+            }
 
             GeolocationStruct geolocationStruct = new GeolocationStruct(length, indexCode, longitude, latitude,
                     siteCode, acquisitionTime, res);
@@ -249,23 +281,23 @@ public class HkWiFiProtocolHandler extends SimpleChannelInboundHandler<Object> {
         ByteBuf byteBuf = Unpooled.buffer(body.length);
         byteBuf.writeBytes(body);
         List<DeviceStatusStruct> list = new ArrayList<>();
-        for (int i=0; i<(int)headerStruct.getInfoNum(); i++) {
+        for (int i=0; i<headerStruct.getInfoNum(); i++) {
             int length = byteBuf.readUnsignedShort();
             short[] indexCode = new short[64];
-            for (short b : indexCode) {
-                b = byteBuf.readUnsignedByte();
+            for (int j=0; j<64; j++) {
+                indexCode[j] = byteBuf.readUnsignedByte();
             }
 
             short status = byteBuf.readUnsignedByte();
             short[] sourceMacAddr = new short[6];
-            for (short b : sourceMacAddr) {
-                b = byteBuf.readUnsignedByte();
+            for (int j=0; j<6; j++) {
+                sourceMacAddr[j] = byteBuf.readUnsignedByte();
             }
 
             short type = byteBuf.readUnsignedByte();
             short[] res = new short[2];
-            for (short b : res) {
-                b = byteBuf.readUnsignedByte();
+            for (int j=0; j<2; j++) {
+                res[j] = byteBuf.readUnsignedByte();
             }
             long acquisitionTime = byteBuf.readUnsignedInt();
 

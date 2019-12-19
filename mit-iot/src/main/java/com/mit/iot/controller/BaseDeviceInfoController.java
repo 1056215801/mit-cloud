@@ -75,15 +75,18 @@ public class BaseDeviceInfoController {
      */
     @ApiOperation(value = "统计设备数量")
     @ApiImplicitParams(value = {
-            @ApiImplicitParam(name = "communityCodeList", value = "所属小区"),
-            @ApiImplicitParam(name = "deviceTypeList", value = "设备类型，大小写均可", allowableValues = "WIFI(wifi探针), " +
-                    "MANHOLE_COVER(智能井盖传感器), FIRE_HYDRANT(消防栓传感器), CIRCUIT_MONITOR(电路监测传感器)"),
-            @ApiImplicitParam(name = "status", value = "设备状态，0 - 异常，1 - 正常", allowableValues = "range[0,1]")
+            @ApiImplicitParam(name = "communityCodeList", value = "所属小区", allowMultiple = true),
+            @ApiImplicitParam(name = "deviceTypeList", value = "设备类型，大小写均可\nWIFI - wifi探针\n" +
+                    "MANHOLE_COVER - 智能井盖传感器\nFIRE_HYDRANT - 消防栓传感器\nCIRCUIT_MONITOR - 电路监测传感器",
+                    allowableValues = "WIFI, MANHOLE_COVER, FIRE_HYDRANT, CIRCUIT_MONITOR",
+                    allowMultiple = true),
+            @ApiImplicitParam(name = "status", value = "设备状态，0 - 异常，1 - 正常", dataType = "int",
+                    allowableValues = "range[0,1]", allowMultiple = true)
     })
     @GetMapping(value = "/metricsDeviceNum")
-    public Result metricsByCondition(@RequestParam(value = "communityCodeList") List<String> communityCodeList,
-                                    @RequestParam(value = "deviceTypeList") List<String> deviceTypeList,
-                                    @RequestParam(value = "status") List<Integer> status) {
+    public Result metricsByCondition(@RequestParam(value = "communityCodeList", required = false) List<String> communityCodeList,
+                                    @RequestParam(value = "deviceTypeList", required = false) List<String> deviceTypeList,
+                                    @RequestParam(value = "status", required = false) List<Integer> status) {
         return Result.succeed(baseDeviceInfoService.metricsDeviceNum(communityCodeList, deviceTypeList, status));
     }
 

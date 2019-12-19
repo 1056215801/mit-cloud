@@ -13,10 +13,10 @@ import java.util.Date;
 public class WiFiGeolocationDTO {
 
     public WiFiGeolocationDTO(GeolocationStruct geolocationStruct) {
-        this.indexCode = ByteUtils.byte2String(geolocationStruct.getIndexCode());
-        this.longitude = ByteUtils.byte2String(geolocationStruct.getLongitude());
-        this.latitude = ByteUtils.byte2String(geolocationStruct.getLatitude());
-        this.siteCode = ByteUtils.byte2String(geolocationStruct.getSiteCode());
+        this.indexCode = ByteUtils.byte2String(ByteUtils.unsignedByte2Bytes(geolocationStruct.getIndexCode())).trim();
+        this.longitude = ByteUtils.byte2String(ByteUtils.unsignedByte2Bytes(geolocationStruct.getLongitude())).trim();
+        this.latitude = ByteUtils.byte2String(ByteUtils.unsignedByte2Bytes(geolocationStruct.getLatitude())).trim();
+        this.siteCode = ByteUtils.byte2String(ByteUtils.unsignedByte2Bytes(geolocationStruct.getSiteCode())).trim();
         this.acquisitionTime = new Date(geolocationStruct.getAcquisitionTime() * 1000);
     }
 

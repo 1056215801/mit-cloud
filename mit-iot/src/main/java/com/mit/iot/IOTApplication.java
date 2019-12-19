@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.mit")
 @ServletComponentScan
 @EnableEurekaClient
 @EnableResourceServer

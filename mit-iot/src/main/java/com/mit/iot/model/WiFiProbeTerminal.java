@@ -6,8 +6,11 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.mit.common.model.SuperEntity;
 import com.mit.iot.protocol.hkwifi.TerminalStruct;
 import com.mit.iot.util.ByteUtils;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
 
@@ -16,6 +19,8 @@ import java.util.Date;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @TableName("wifi_probe_terminal")
 public class WiFiProbeTerminal extends SuperEntity {
     /**
@@ -54,14 +59,15 @@ public class WiFiProbeTerminal extends SuperEntity {
     private String phoneBrand;
 
     public WiFiProbeTerminal(TerminalStruct terminalStruct) {
-        this.terminalMac = ByteUtils.byte2String(ByteUtils.unsignedByte2Bytes(terminalStruct.getSourceMacAddr()));
+        this.terminalMac = ByteUtils.byte2HexString(ByteUtils.unsignedByte2Bytes(terminalStruct.getSourceMacAddr()));
         this.firstAcquisitionTime = new Date(terminalStruct.getFirstAcquisitionTime() * 1000);
         this.lastAcquisitionTime = new Date(terminalStruct.getLastAcquisitionTime() * 1000);
         this.scanTime = terminalStruct.getScanTime();
         this.wifiFieldIntensity = terminalStruct.getWifiFieldIntensity();
-        this.indexCode = ByteUtils.byte2String(ByteUtils.unsignedByte2Bytes(terminalStruct.getIndexCode()));
-        this.connectedApMac = ByteUtils.byte2String(ByteUtils.unsignedByte2Bytes(terminalStruct.getConnectedMacAddr()));
-        this.phoneBrand = ByteUtils.byte2String(ByteUtils.unsignedByte2Bytes(terminalStruct.getPhoneBrand()), "UTF-8");
+        this.indexCode = ByteUtils.byte2String(ByteUtils.unsignedByte2Bytes(terminalStruct.getIndexCode())).trim();
+        byte[] connected = ByteUtils.unsignedByte2Bytes(terminalStruct.getConnectedMacAddr());
+        this.connectedApMac = StringUtils.isBlank(new String(connected).trim()) ? "" : ByteUtils.byte2HexString(connected);
+        this.phoneBrand = ByteUtils.byte2String(ByteUtils.unsignedByte2Bytes(terminalStruct.getPhoneBrand()), "UTF-8").trim();
     }
 
     @Override

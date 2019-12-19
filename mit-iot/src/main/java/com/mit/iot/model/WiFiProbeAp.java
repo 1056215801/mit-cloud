@@ -8,8 +8,10 @@ import com.mit.common.model.SuperEntity;
 import com.mit.iot.enums.hkwifi.WIFISpotEncryptType;
 import com.mit.iot.protocol.hkwifi.APStruct;
 import com.mit.iot.util.ByteUtils;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
@@ -18,6 +20,8 @@ import java.util.Date;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @TableName("wifi_probe_ap")
 public class WiFiProbeAp extends SuperEntity {
     /**
@@ -49,7 +53,7 @@ public class WiFiProbeAp extends SuperEntity {
     /**
      * 热点频道
      */
-    private int channel;
+    private long channel;
     /**
      * 热点名称
      */
@@ -60,15 +64,15 @@ public class WiFiProbeAp extends SuperEntity {
     private String indexCode;
 
     public WiFiProbeAp(APStruct apStruct) {
-        this.apMac = ByteUtils.byte2String(apStruct.getSourceMacAddr());
+        this.apMac = ByteUtils.byte2HexString(ByteUtils.unsignedByte2Bytes(apStruct.getSourceMacAddr()));
         this.firstAcquisitionTime = new Date(apStruct.getFirstAcquisitionTime() * 1000);
         this.lastAcquisitionTime = new Date(apStruct.getLastAcquisitionTime() * 1000);
         this.scanTime = apStruct.getScanTime();
         this.wifiFieldIntensity = apStruct.getWifiFieldIntensity();
-        this.wifiSpotEncryptType = EnumUtil.likeValueOf(WIFISpotEncryptType.class, apStruct.getWifiSpotEncryptType()).getValue();
+        this.wifiSpotEncryptType = EnumUtil.likeValueOf(WIFISpotEncryptType.class, (int) apStruct.getWifiSpotEncryptType()).getValue();
         this.channel = apStruct.getChannel();
-        this.ssid = ByteUtils.byte2String(apStruct.getSsid(), "UTF-8");
-        this.indexCode = ByteUtils.byte2String(apStruct.getIndexCode());
+        this.ssid = ByteUtils.byte2String(ByteUtils.unsignedByte2Bytes(apStruct.getSsid()), "UTF-8").trim();
+        this.indexCode = ByteUtils.byte2String(ByteUtils.unsignedByte2Bytes(apStruct.getIndexCode())).trim();
     }
 
     @Override

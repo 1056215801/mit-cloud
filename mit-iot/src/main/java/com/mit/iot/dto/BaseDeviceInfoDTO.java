@@ -33,8 +33,9 @@ public class BaseDeviceInfoDTO {
     @Length(max = 64)
     private String deviceName;
 
-    @ApiModelProperty(value = "设备类型，大小写均可", required = true, allowableValues = "WIFI(wifi探针), " +
-            "MANHOLE_COVER(智能井盖传感器), FIRE_HYDRANT(消防栓传感器), CIRCUIT_MONITOR(电路监测传感器)")
+    @ApiModelProperty(value = "设备类型，大小写均可\nWIFI - wifi探针\nMANHOLE_COVER - 智能井盖传感器\n" +
+            "FIRE_HYDRANT - 消防栓传感器\nCIRCUIT_MONITOR - 电路监测传感器", allowableValues = "WIFI, " +
+            "MANHOLE_COVER, FIRE_HYDRANT, CIRCUIT_MONITOR", required = true)
     @NotBlank
     private String deviceType;
 

@@ -3,6 +3,7 @@ package com.mit.iot.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.mit.common.utils.BeanUtils;
 import com.mit.iot.dto.hkwifi.WiFiDeviceStatusDTO;
 import com.mit.iot.dto.hkwifi.WiFiGeolocationDTO;
 import com.mit.iot.dto.hkwifi.WiFiProbeDTO;
@@ -13,10 +14,12 @@ import com.mit.iot.model.WiFiProbe;
 import com.mit.iot.service.IBaseDeviceInfoService;
 import com.mit.iot.service.IWiFiProbeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +28,9 @@ import java.util.UUID;
  */
 @Service
 public class WiFiProbeServiceImpl extends ServiceImpl<WiFiProbeMapper, WiFiProbe> implements IWiFiProbeService {
+
+    @Value("${netty.server.wifi.autoSave:true}")
+    private boolean isAutoSave;
 
     @Autowired
     private IBaseDeviceInfoService baseDeviceInfoService;
@@ -56,14 +62,17 @@ public class WiFiProbeServiceImpl extends ServiceImpl<WiFiProbeMapper, WiFiProbe
         list.forEach(wiFiDeviceStatusDTO -> {
             WiFiProbe wiFiProbe = this.getByIndexCode(wiFiDeviceStatusDTO.getIndexCode());
             if (wiFiProbe == null) {
-                // 不存在则自动保存
-                autoSaveWithUpDeviceStatus(wiFiDeviceStatusDTO);
+                // 是否自动保存
+                if (isAutoSave) {
+                    autoSaveWithUpDeviceStatus(wiFiDeviceStatusDTO);
+                }
                 return;
             }
             // 存在则更新信息
             BaseDeviceInfo dbBaseDeviceInfo = baseDeviceInfoService.getById(wiFiProbe.getBaseDeviceInfoId());
             dbBaseDeviceInfo.setStatus(wiFiDeviceStatusDTO.getStatus());
             dbBaseDeviceInfo.setAcquisitionTime(wiFiDeviceStatusDTO.getAcquisitionTime());
+            dbBaseDeviceInfo.setUpdateTime(new Date());
             baseDeviceInfoService.updateById(dbBaseDeviceInfo);
         });
     }
@@ -100,8 +109,9 @@ public class WiFiProbeServiceImpl extends ServiceImpl<WiFiProbeMapper, WiFiProbe
         list.forEach(wiFiGeolocationDTO -> {
             WiFiProbe wiFiProbe = this.getByIndexCode(wiFiGeolocationDTO.getIndexCode());
             if (wiFiProbe == null) {
-                // 不存在则自动保存
-                autoSaveWithUpGeolocation(wiFiGeolocationDTO);
+                if (isAutoSave) {
+                    autoSaveWithUpGeolocation(wiFiGeolocationDTO);
+                }
                 return;
             }
             // 存在则更新信息
@@ -109,6 +119,7 @@ public class WiFiProbeServiceImpl extends ServiceImpl<WiFiProbeMapper, WiFiProbe
             dbBaseDeviceInfo.setLongitude(wiFiGeolocationDTO.getLongitude());
             dbBaseDeviceInfo.setLatitude(wiFiGeolocationDTO.getLatitude());
             dbBaseDeviceInfo.setAcquisitionTime(wiFiGeolocationDTO.getAcquisitionTime());
+            dbBaseDeviceInfo.setUpdateTime(new Date());
             baseDeviceInfoService.updateById(dbBaseDeviceInfo);
         });
     }
@@ -159,17 +170,15 @@ public class WiFiProbeServiceImpl extends ServiceImpl<WiFiProbeMapper, WiFiProbe
     @Override
     public boolean updateWithBaseInfo(WiFiProbeDTO wiFiProbeDTO) throws Exception {
         BaseDeviceInfo dbBaseDeviceInfo = baseDeviceInfoService.getById(wiFiProbeDTO.getId());
-        if (dbBaseDeviceInfo == null) {
-            throw new Exception("设备基本数据不存在");
-        }
-        BeanUtil.copyProperties(wiFiProbeDTO, dbBaseDeviceInfo);
+        BeanUtil.copyProperties(wiFiProbeDTO, dbBaseDeviceInfo, BeanUtils.getNullPropertyNames(wiFiProbeDTO));
+        dbBaseDeviceInfo.setUpdateTime(new Date());
         baseDeviceInfoService.updateById(dbBaseDeviceInfo);
 
         WiFiProbe dbWiFiProbe = this.getByBaseInfoId(dbBaseDeviceInfo.getId());
         if (dbWiFiProbe == null) {
             throw new Exception("WiFi探针数据不存在");
         }
-        BeanUtil.copyProperties(wiFiProbeDTO, dbWiFiProbe);
+        BeanUtil.copyProperties(wiFiProbeDTO, dbWiFiProbe, BeanUtils.getNullPropertyNames(wiFiProbeDTO));
         baseMapper.updateById(dbWiFiProbe);
         return true;
     }

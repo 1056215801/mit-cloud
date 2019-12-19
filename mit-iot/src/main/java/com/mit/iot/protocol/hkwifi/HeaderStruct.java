@@ -28,8 +28,8 @@ public class HeaderStruct {
         this.res1 = byteBuf.readUnsignedByte();
         this.version = byteBuf.readUnsignedShort();
         short[] res = new short[8];
-        for (short b : res) {
-            b = byteBuf.readUnsignedByte();
+        for (int i=0; i<8; i++) {
+            res[i] = byteBuf.readUnsignedByte();
         }
         this.res = res;
     }
