@@ -4,6 +4,7 @@
     <file url="file://$PROJECT_DIR$/sql/auth-server.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/sql/event-handling.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/sql/log-center.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/mit-iot.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/sql/user-center.sql" dialect="MySQL" />
   </component>
 </project>

@@ -6,19 +6,20 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="db-spring-boot-starter" />
-        <module name="mit-auth-server" />
-        <module name="log-spring-boot-starter" />
-        <module name="event-handling" />
-        <module name="auth-client-spring-boot-starter" />
-        <module name="workflow" />
-        <module name="mit-monitor" />
-        <module name="swagger-spring-boot-starter" />
         <module name="mit-gateway" />
-        <module name="redis-spring-boot-starter" />
+        <module name="workflow" />
+        <module name="db-spring-boot-starter" />
+        <module name="event-handling" />
+        <module name="mit-monitor" />
+        <module name="mit-auth-server" />
+        <module name="swagger-spring-boot-starter" />
         <module name="common-spring-boot-starter" />
         <module name="user-center" />
+        <module name="log-spring-boot-starter" />
         <module name="mit-register" />
+        <module name="auth-client-spring-boot-starter" />
+        <module name="mit-iot" />
+        <module name="redis-spring-boot-starter" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

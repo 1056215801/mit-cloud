@@ -105,7 +105,7 @@ public interface EventBaseInfoMapper extends BaseMapper<EventBaseInfo> {
                 sql.append("and b.happened_time <= #{happenedTimeEnd} ");
             }
             sql.append("and b.event_code = c.event_code order by b.happened_time desc ");
-            if (baseInfoQueryDTO.getPageNumber() != null && baseInfoQueryDTO.getPageSize() != null) {
+            if (baseInfoQueryDTO.getPageNum() != null && baseInfoQueryDTO.getPageSize() != null) {
                 sql.append("limit #{offset},#{limit}");
             }
             sql.append("</script>");

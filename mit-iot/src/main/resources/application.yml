@@ -1,0 +1,33 @@
+logging:
+  level:
+    com.mit: debug
+
+spring:
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  datasource:
+    dynamic:
+      enable: true
+    druid:
+      core:
+        url: jdbc:mysql://${mysql-host:127.0.0.1}:${mysql-port:3306}/mit-iot?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai
+        username: ${mysql-user:root}
+        password: ${mysql-password:123456}
+        driver-class-name:  com.mysql.cj.jdbc.Driver
+      log:
+        url: jdbc:mysql://${mysql-host:127.0.0.1}:${mysql-port:3306}/mit-log-center?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=Asia/Shanghai
+        username: ${mysql-user:root}
+        password: ${mysql-password:123456}
+        driver-class-name:  com.mysql.cj.jdbc.Driver
+
+netty:
+  server:
+    sensor: #传感器
+      port: 8237
+    wifi: #WIFI探针
+      port: 8307
+
+security:
+  oauth2:
+    ignored: /**
