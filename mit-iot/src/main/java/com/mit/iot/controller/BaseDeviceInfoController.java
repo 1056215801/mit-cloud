@@ -7,6 +7,7 @@ import com.mit.iot.dto.DeviceInfoQueryDTO;
 import com.mit.iot.enums.DeviceTypeEnum;
 import com.mit.iot.model.BaseDeviceInfo;
 import com.mit.iot.service.IBaseDeviceInfoService;
+import com.mit.iot.service.IFireHydrantService;
 import com.mit.iot.service.IWiFiProbeService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -39,6 +40,9 @@ public class BaseDeviceInfoController {
     @Autowired
     private IWiFiProbeService wiFiProbeService;
 
+    @Autowired
+    private IFireHydrantService fireHydrantService;
+
     @ApiOperation(value = "分页查询设备信息列表")
     @GetMapping(value = "/pageQuery")
     public Result<IPage<BaseDeviceInfo>> queryBaseInfoByCondition(@Valid DeviceInfoQueryDTO deviceInfoQueryDTO) {
@@ -49,6 +53,8 @@ public class BaseDeviceInfoController {
                 case WIFI:
                     baseDeviceInfo.setExtension(wiFiProbeService.getByBaseInfoId(baseDeviceInfo.getId()));
                     break;
+                case FIRE_HYDRANT:
+                    baseDeviceInfo.setExtension(fireHydrantService.getByBaseInfoId(baseDeviceInfo.getId()));
                 default:
                     break;
             }

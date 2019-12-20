@@ -1,10 +1,14 @@
 package com.mit.iot.dto.sensor;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.EnumUtil;
 import com.mit.iot.enums.sensor.SensorDeviceTypeEnum;
 import com.mit.iot.protocol.sensor.Type01Struct;
 import com.mit.iot.util.ByteUtils;
 import lombok.Data;
+
+import java.util.Date;
 
 /**
  * @Description 传感器采样基本数据
@@ -25,13 +29,13 @@ public class SensorSamplingBaseData {
                 .append(ByteUtils.bcd2String(protocol.getHour()))
                 .append(ByteUtils.bcd2String(protocol.getMinute()))
                 .append(ByteUtils.bcd2String(protocol.getSecond()));
-        this.sendTime = sb.toString();
+        this.sendTime = DateUtil.parse(sb.toString(), DatePattern.PURE_DATETIME_PATTERN);
         this.batteryLevel = protocol.getBatteryLevel();
         this.signalStrength = protocol.getSignalStrength();
     }
 
     /**
-     * 设备类型，枚举值见 DeviceTypeEnum
+     * 设备类型
      */
     private int deviceType;
     /**
@@ -45,7 +49,7 @@ public class SensorSamplingBaseData {
     /**
      * 发送时间
      */
-    private String sendTime;
+    private Date sendTime;
     /**
      * 电池电量，0-100
      */

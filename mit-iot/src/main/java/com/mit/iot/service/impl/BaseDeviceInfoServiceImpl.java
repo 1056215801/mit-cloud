@@ -11,6 +11,7 @@ import com.mit.iot.enums.DeviceTypeEnum;
 import com.mit.iot.mapper.BaseDeviceInfoMapper;
 import com.mit.iot.model.BaseDeviceInfo;
 import com.mit.iot.service.IBaseDeviceInfoService;
+import com.mit.iot.service.IFireHydrantService;
 import com.mit.iot.service.IWiFiProbeService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +31,9 @@ public class BaseDeviceInfoServiceImpl extends ServiceImpl<BaseDeviceInfoMapper,
 
     @Autowired
     private IWiFiProbeService wiFiProbeService;
+
+    @Autowired
+    private IFireHydrantService fireHydrantService;
 
     @Override
     public IPage<BaseDeviceInfo> listByCondition(DeviceInfoQueryDTO deviceInfoQueryDTO) {
@@ -70,6 +74,9 @@ public class BaseDeviceInfoServiceImpl extends ServiceImpl<BaseDeviceInfoMapper,
                 switch (deviceTypeEnum) {
                     case WIFI:
                         wiFiProbeService.deleteByBaseInfoId(baseDeviceInfo.getId());
+                        break;
+                    case FIRE_HYDRANT:
+                        fireHydrantService.deleteByBaseInfoId(baseDeviceInfo.getId());
                         break;
                     default:
                         break;

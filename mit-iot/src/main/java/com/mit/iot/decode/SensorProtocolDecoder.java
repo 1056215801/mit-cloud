@@ -1,5 +1,7 @@
 package com.mit.iot.decode;
 
+import cn.hutool.core.util.EnumUtil;
+import com.mit.iot.enums.sensor.DataTypeEnum;
 import com.mit.iot.enums.sensor.SensorDeviceTypeEnum;
 import com.mit.iot.protocol.sensor.BaseStruct;
 import com.mit.iot.protocol.sensor.Type01Device1To4Struct;
@@ -48,8 +50,8 @@ public class SensorProtocolDecoder extends ByteToMessageDecoder {
         }
 
         BaseStruct protocol = decode2Object(type, length, body, crc);
+        log.debug(protocol.toString());
         list.add(protocol);
-        log.debug("-----完成解析");
     }
 
     /**
@@ -102,15 +104,16 @@ public class SensorProtocolDecoder extends ByteToMessageDecoder {
     private BaseStruct decode2Object(byte type, short length, byte[] body, short crc) {
         BaseStruct protocol = null;
         // 根据不同的数据类型解析对应的数据体
-        switch (ByteUtils.byte2HexString(type)) {
+        DataTypeEnum dataTypeEnum = EnumUtil.likeValueOf(DataTypeEnum.class, (int) type);
+        switch (dataTypeEnum) {
             // 传感器采样数据，上行
-            case "01":
+            case TYPE01:
                 // 设备类型，不同设备类型解析不同的Sample_data
-                String deviceType = ByteUtils.byte2HexString(body[0]);
-                if (SensorDeviceTypeEnum.TYPE01.getHexString().equals(deviceType) ||
-                        SensorDeviceTypeEnum.TYPE02.getHexString().equals(deviceType) ||
-                        SensorDeviceTypeEnum.TYPE03.getHexString().equals(deviceType) ||
-                        SensorDeviceTypeEnum.TYPE04.getHexString().equals(deviceType)) {
+                int deviceType = (int) body[0];
+                if (SensorDeviceTypeEnum.TYPE01.getType() == deviceType ||
+                        SensorDeviceTypeEnum.TYPE02.getType() == deviceType ||
+                        SensorDeviceTypeEnum.TYPE03.getType() == deviceType ||
+                        SensorDeviceTypeEnum.TYPE04.getType() == deviceType) {
                     protocol = new Type01Device1To4Struct(type, length, body, crc);
                 }
                 break;
