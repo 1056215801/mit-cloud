@@ -13,7 +13,7 @@ eureka:
   client:
     service-url:
       # eureka-server的地址，这里开启了身份验证
-      defaultZone: http://${eureka-server-user:admin}:${eureka-server-password:mit123456}@${eureka-server-host:127.0.0.1}:${eureka-server-port:8761}/eureka
+      defaultZone: http://${eureka-server-user:admin}:${eureka-server-password:mit123456}@${eureka-server-host:192.168.1.60}:${eureka-server-port:8761}/eureka
 
 # 监控端口
 management:
