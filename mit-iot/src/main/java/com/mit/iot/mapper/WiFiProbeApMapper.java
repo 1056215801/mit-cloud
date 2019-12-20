@@ -3,6 +3,7 @@ package com.mit.iot.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.mit.iot.model.WiFiProbeAp;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 @Mapper
@@ -15,5 +16,5 @@ public interface WiFiProbeApMapper extends BaseMapper<WiFiProbeAp> {
      * @return 如果存在返回唯一的一条记录，不存在则返回空
      */
     @Select("select t.* from wifi_probe_ap t where t.ap_mac = #{apMac} and t.index_code = #{indexCode}")
-    WiFiProbeAp selectByApMacAndIndexCode(String apMac, String indexCode);
+    WiFiProbeAp selectByApMacAndIndexCode(@Param("apMac") String apMac, @Param("indexCode") String indexCode);
 }

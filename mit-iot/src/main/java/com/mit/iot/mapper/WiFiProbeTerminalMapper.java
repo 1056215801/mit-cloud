@@ -3,6 +3,7 @@ package com.mit.iot.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.mit.iot.model.WiFiProbeTerminal;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 @Mapper
@@ -15,5 +16,5 @@ public interface WiFiProbeTerminalMapper extends BaseMapper<WiFiProbeTerminal> {
      * @return 如果存在返回唯一的一条记录，不存在则返回空
      */
     @Select("select t.* from wifi_probe_terminal t where t.terminal_mac = #{terminalMac} and t.index_code = #{indexCode}")
-    WiFiProbeTerminal selectByTerminalMacAndIndexCode(String terminalMac, String indexCode);
+    WiFiProbeTerminal selectByTerminalMacAndIndexCode(@Param("terminalMac") String terminalMac, @Param("indexCode") String indexCode);
 }

@@ -2,6 +2,8 @@ package com.mit.iot.controller;
 
 import com.mit.common.web.Result;
 import com.mit.iot.dto.hkwifi.WiFiProbeDTO;
+import com.mit.iot.model.BaseDeviceInfo;
+import com.mit.iot.model.WiFiProbe;
 import com.mit.iot.service.IBaseDeviceInfoService;
 import com.mit.iot.service.IWiFiProbeService;
 import io.swagger.annotations.Api;
@@ -39,6 +41,9 @@ public class WiFiProbeController {
         } catch (Exception e) {
             return Result.failed(e.getMessage());
         }
+        if (null != wiFiProbeService.getByIndexCode(wiFiProbeDTO.getIndexCode())) {
+            return Result.failed("平台索引重复");
+        }
         wiFiProbeService.saveWithBaseInfo(wiFiProbeDTO);
         return Result.succeed();
     }
@@ -49,8 +54,23 @@ public class WiFiProbeController {
         if (null == wiFiProbeDTO.getId()) {
             return Result.failed("id不能为空");
         }
+        BaseDeviceInfo dbBaseDeviceInfo = baseDeviceInfoService.getById(wiFiProbeDTO.getId());
+        if (dbBaseDeviceInfo == null) {
+            return Result.failed("设备基本数据不存在");
+        }
         try {
             baseDeviceInfoService.checkBaseInfo(wiFiProbeDTO);
+        } catch (Exception e) {
+            if ((long) dbBaseDeviceInfo.getId() != wiFiProbeDTO.getId()) {
+                return Result.failed(e.getMessage());
+            }
+        }
+
+        WiFiProbe wiFiProbe = wiFiProbeService.getByIndexCode(wiFiProbeDTO.getIndexCode());
+        if (null != wiFiProbe && (long) wiFiProbe.getId() != wiFiProbeDTO.getId()) {
+            return Result.failed("平台索引重复");
+        }
+        try {
             wiFiProbeService.updateWithBaseInfo(wiFiProbeDTO);
         } catch (Exception e) {
             return Result.failed(e.getMessage());

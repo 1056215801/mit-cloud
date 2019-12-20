@@ -23,10 +23,18 @@ spring:
 
 netty:
   server:
-    sensor: #传感器
+    # 传感器设备数据上报监听
+    sensor:
+      # 是否开启监听服务
+      enabled: true
+      # 端口
       port: 8237
-    wifi: #WIFI探针
+    # WIFI探针设备数据上报监听
+    wifi:
+      enabled: true
       port: 8307
+      # 上报设备状态或地理位置时，如果数据库中不存在该设备，是否自动保存该设备信息
+      autoSave: true
 
 security:
   oauth2:

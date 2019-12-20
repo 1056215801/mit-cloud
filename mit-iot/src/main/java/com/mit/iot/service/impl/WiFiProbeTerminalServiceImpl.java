@@ -5,17 +5,18 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.mit.common.utils.BeanUtils;
 import com.mit.iot.dto.hkwifi.WiFiQueryDTO;
 import com.mit.iot.mapper.WiFiProbeTerminalMapper;
-import com.mit.iot.model.WiFiProbeAp;
 import com.mit.iot.model.WiFiProbeTerminal;
 import com.mit.iot.service.IWiFiProbeTerminalService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -44,12 +45,17 @@ public class WiFiProbeTerminalServiceImpl extends ServiceImpl<WiFiProbeTerminalM
             if (dbWiFiProbeTerminal == null) {
                 saveList.add(wiFiProbeTerminal);
             } else {
-                BeanUtil.copyProperties(wiFiProbeTerminal, dbWiFiProbeTerminal);
+                BeanUtil.copyProperties(wiFiProbeTerminal, dbWiFiProbeTerminal, BeanUtils.getNullPropertyNames(wiFiProbeTerminal));
+                dbWiFiProbeTerminal.setUpdateTime(new Date());
                 updateList.add(dbWiFiProbeTerminal);
             }
         });
-        this.saveBatch(saveList);
-        this.updateBatchById(updateList);
+        if (CollectionUtils.isNotEmpty(saveList)) {
+            this.saveBatch(saveList);
+        }
+        if (CollectionUtils.isNotEmpty(updateList)) {
+            this.updateBatchById(updateList);
+        }
     }
 
     @Override

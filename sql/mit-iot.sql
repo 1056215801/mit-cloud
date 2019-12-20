@@ -33,7 +33,7 @@ CREATE TABLE `wifi_probe` (
     `id` int(32) NOT NULL AUTO_INCREMENT COMMENT '主键',
     `base_device_info_id` int(32) NOT NULL COMMENT '关联base_device_info表的id',
     `index_code` varchar(64) DEFAULT NULL COMMENT 'wifi探针平台索引',
-    `mac` varchar(32) DEFAULT NULL COMMENT '设备Mac地址',
+    `mac` varchar(20) DEFAULT NULL COMMENT '设备Mac地址',
     PRIMARY KEY (`id`),
     UNIQUE KEY `idx_index_code` (`index_code`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=Dynamic COMMENT='wifi探针设备信息表';
@@ -44,13 +44,13 @@ CREATE TABLE `wifi_probe` (
 DROP TABLE IF EXISTS `wifi_probe_terminal`;
 CREATE TABLE `wifi_probe_terminal` (
     `id` int(32) NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `terminal_mac` varchar(32) DEFAULT NULL COMMENT '终端Mac地址',
+    `terminal_mac` varchar(20) DEFAULT NULL COMMENT '终端Mac地址',
     `first_acquisition_time` datetime DEFAULT NULL COMMENT '第一次被采集的时间',
     `last_acquisition_time` datetime DEFAULT NULL COMMENT '最后一次被采集的时间',
-    `scan_time` int(16) DEFAULT NULL COMMENT '被扫描次数',
+    `scan_time` int(32) DEFAULT NULL COMMENT '被扫描次数',
     `wifi_field_intensity` int(4) DEFAULT NULL COMMENT '信号强度',
     `index_code` varchar(64) DEFAULT NULL COMMENT 'wifi探针平台索引',
-    `connected_ap_mac` varchar(32) DEFAULT NULL COMMENT '连接的热点mac地址',
+    `connected_ap_mac` varchar(20) DEFAULT NULL COMMENT '连接的热点mac地址',
     `phone_brand` varchar(32) DEFAULT NULL COMMENT '手机品牌',
     `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
@@ -65,13 +65,13 @@ CREATE TABLE `wifi_probe_terminal` (
 DROP TABLE IF EXISTS `wifi_probe_ap`;
 CREATE TABLE `wifi_probe_ap` (
     `id` int(32) NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `ap_mac` varchar(32) DEFAULT NULL COMMENT '热点Mac地址',
+    `ap_mac` varchar(20) DEFAULT NULL COMMENT '热点Mac地址',
     `first_acquisition_time` datetime DEFAULT NULL COMMENT '第一次被采集的时间',
     `last_acquisition_time` datetime DEFAULT NULL COMMENT '最后一次被采集的时间',
-    `scan_time` int(16) DEFAULT NULL COMMENT '被扫描次数',
+    `scan_time` int(32) DEFAULT NULL COMMENT '被扫描次数',
     `wifi_field_intensity` int(4) DEFAULT NULL COMMENT '信号强度',
     `wifi_spot_encrypt_type` varchar(16) DEFAULT NULL COMMENT '加密方式',
-    `channel` int(32) DEFAULT NULL COMMENT '热点频道',
+    `channel` int(64) DEFAULT NULL COMMENT '热点频道',
     `ssid` varchar(64) DEFAULT NULL COMMENT '热点名称',
     `index_code` varchar(64) DEFAULT NULL COMMENT 'wifi探针平台索引',
     `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
