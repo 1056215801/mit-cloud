@@ -2,6 +2,7 @@ package com.mit.iot;
 
 import com.mit.common.config.MybatisPlusConfig;
 import com.mit.datasource.handler.MyMetaObjectHandler;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
@@ -11,6 +12,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication(scanBasePackages = "com.mit")
+@MapperScan("com.mit.iot.mapper")
 @ServletComponentScan
 @EnableEurekaClient
 @EnableResourceServer
