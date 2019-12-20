@@ -52,13 +52,13 @@ public class BaseStruct {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        /*sb.append("-------解析前数据包-------").append(System.lineSeparator());
-        sb.append("|开始标志---").append(ByteUtils.byte2HexString(ByteUtils.int2HexBytes(header_int))).append(System.lineSeparator());
+        sb.append("-------解析前数据包-------").append(System.lineSeparator());
+        sb.append("|开始标志---").append(ByteUtils.byte2HexString(ByteUtils.int2Bytes(header_int))).append(System.lineSeparator());
         sb.append("|数据类型---").append(ByteUtils.byte2HexString(type)).append(System.lineSeparator());
         sb.append("|数据长度(10)").append(length).append(System.lineSeparator());
         sb.append("|数据体-----").append(ByteUtils.byte2HexString(body)).append(System.lineSeparator());
-        sb.append("|校验值-----").append(ByteUtils.byte2HexString(ByteUtils.short2HexBytes(crc))).append(System.lineSeparator());
-        sb.append("|结束标志---").append(ByteUtils.byte2HexString(tail)).append(System.lineSeparator());*/
+        sb.append("|校验值-----").append(ByteUtils.byte2HexString(ByteUtils.short2Bytes(crc))).append(System.lineSeparator());
+        sb.append("|结束标志---").append(ByteUtils.byte2HexString(tail)).append(System.lineSeparator());
         return sb.toString();
     }
 

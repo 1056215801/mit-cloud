@@ -81,3 +81,19 @@ CREATE TABLE `wifi_probe_ap` (
     KEY `idx_index_code` (`index_code`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=Dynamic COMMENT='wifi探针上传AP信息表';
 
+-- ----------------------------
+-- Table structure for fire_hydrant
+-- ----------------------------
+DROP TABLE IF EXISTS `fire_hydrant`;
+CREATE TABLE `fire_hydrant` (
+    `id` int(32) NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `base_device_info_id` int(32) NOT NULL COMMENT '关联base_device_info表的id',
+    `imei` varchar(16) DEFAULT NULL COMMENT 'IMEI号码',
+    `battery_level` varchar(4) DEFAULT NULL COMMENT '电池电量',
+    `signal_strength` varchar(4) DEFAULT NULL COMMENT '信号强度',
+    `data_status` varchar(2) DEFAULT NULL COMMENT '数据状态',
+    `data_value` varchar(8) DEFAULT NULL COMMENT '数据值',
+    `data_measurement_unit` varchar(8) DEFAULT NULL COMMENT '计量单位',
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=Dynamic COMMENT='消防栓设备信息表';
+

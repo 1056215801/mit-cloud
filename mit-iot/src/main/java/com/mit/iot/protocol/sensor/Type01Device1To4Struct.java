@@ -84,14 +84,14 @@ public class Type01Device1To4Struct extends Type01Struct {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(super.toString());
-        /*sb.append("|数据状态---").append(ByteUtils.byte2HexString(ByteUtils.int2HexBytes(dataStatus))).append(System.lineSeparator());
-        sb.append("|计量单位---").append(ByteUtils.byte2HexString(ByteUtils.int2HexBytes(measurementUnit))).append(System.lineSeparator());
-        sb.append("|小数点位置-").append(ByteUtils.byte2HexString(ByteUtils.int2HexBytes(decimalPointPosition))).append(System.lineSeparator());
-        sb.append("|第1个数字--").append(ByteUtils.byte2HexString(ByteUtils.int2HexBytes(position1))).append(System.lineSeparator());
-        sb.append("|第2个数字--").append(ByteUtils.byte2HexString(ByteUtils.int2HexBytes(position2))).append(System.lineSeparator());
-        sb.append("|第3个数字--").append(ByteUtils.byte2HexString(ByteUtils.int2HexBytes(position3))).append(System.lineSeparator());
-        sb.append("|第4个数字--").append(ByteUtils.byte2HexString(ByteUtils.int2HexBytes(position4))).append(System.lineSeparator());
-        sb.append("|第5个数字--").append(ByteUtils.byte2HexString(ByteUtils.int2HexBytes(position5))).append(System.lineSeparator());*/
+        sb.append("|数据状态---").append(ByteUtils.byte2HexString(ByteUtils.int2Bytes(dataStatus))).append(System.lineSeparator());
+        sb.append("|计量单位---").append(ByteUtils.byte2HexString(ByteUtils.int2Bytes(measurementUnit))).append(System.lineSeparator());
+        sb.append("|小数点位置-").append(ByteUtils.byte2HexString(ByteUtils.int2Bytes(decimalPointPosition))).append(System.lineSeparator());
+        sb.append("|第1个数字--").append(ByteUtils.byte2HexString(ByteUtils.int2Bytes(position1))).append(System.lineSeparator());
+        sb.append("|第2个数字--").append(ByteUtils.byte2HexString(ByteUtils.int2Bytes(position2))).append(System.lineSeparator());
+        sb.append("|第3个数字--").append(ByteUtils.byte2HexString(ByteUtils.int2Bytes(position3))).append(System.lineSeparator());
+        sb.append("|第4个数字--").append(ByteUtils.byte2HexString(ByteUtils.int2Bytes(position4))).append(System.lineSeparator());
+        sb.append("|第5个数字--").append(ByteUtils.byte2HexString(ByteUtils.int2Bytes(position5))).append(System.lineSeparator());
         return sb.toString();
     }
 }
