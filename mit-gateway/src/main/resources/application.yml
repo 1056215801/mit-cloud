@@ -7,11 +7,57 @@ spring:
         locator:
           # 开启默认路由规则
           enabled: true
+      routes:
+        - id: car-manage
+          uri: lb://car-manage
+          predicates:
+            - Path=/car-manage/**
+          filters:
+            - StripPrefix=0
+
+        - id: web-community-wanli
+          uri: lb://web-community-wanli
+          predicates:
+            - Path=/api/web/**
+          filters:
+            - StripPrefix=0
+
+        - id: app-community-wanli
+          uri: lb://app-community-wanli
+          predicates:
+            - Path=/api/app/**
+          filters:
+            - StripPrefix=0
+
+        - id: menjin-connect-manage
+          uri: lb://menjin-connect-manage
+          predicates:
+            - Path=/menjin-connect/**
+          filters:
+            - StripPrefix=0
+
+        - id: menjin-open-manager
+          uri: lb://menjin-open-manager
+          predicates:
+            - Path=/menjin-open/**
+          filters:
+            - StripPrefix=0
+
+        - id: camera-manager
+          uri: lb://camera-server
+          predicates:
+            - Path=/cloud-service/**
+          filters:
+            - StripPrefix=0
 
 server:
   port: 8765
 
 eureka:
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}
+    hostname: ${spring.application.name}
   client:
     service-url:
       # eureka-server的地址，这里开启了身份验证

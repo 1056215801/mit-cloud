@@ -6,22 +6,42 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="db-spring-boot-starter" />
-        <module name="mit-auth-server" />
-        <module name="log-spring-boot-starter" />
         <module name="auth-client-spring-boot-starter" />
-        <module name="user-center" />
-        <module name="mit-monitor" />
-        <module name="swagger-spring-boot-starter" />
-        <module name="mit-gateway" />
         <module name="common-spring-boot-starter" />
-        <module name="redis-spring-boot-starter" />
+        <module name="db-spring-boot-starter" />
+        <module name="event-handling" />
+        <module name="log-spring-boot-starter" />
+        <module name="mit-auth-server" />
+        <module name="mit-gateway" />
+        <module name="mit-iot" />
+        <module name="mit-monitor" />
         <module name="mit-register" />
+        <module name="redis-spring-boot-starter" />
+        <module name="swagger-spring-boot-starter" />
+        <module name="user-center" />
+        <module name="workflow" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="auth-client-spring-boot-starter" target="1.8" />
+      <module name="central-platform" target="1.5" />
+      <module name="common-spring-boot-starter" target="1.8" />
+      <module name="db-spring-boot-starter" target="1.8" />
       <module name="eureka-client-test" target="1.8" />
       <module name="eureka-client-test2" target="1.8" />
+      <module name="event-handling" target="1.8" />
+      <module name="log-spring-boot-starter" target="1.8" />
+      <module name="mit-auth-server" target="1.8" />
+      <module name="mit-business" target="1.5" />
+      <module name="mit-commons" target="1.5" />
+      <module name="mit-gateway" target="1.8" />
+      <module name="mit-iot" target="1.8" />
+      <module name="mit-monitor" target="1.8" />
+      <module name="mit-register" target="1.8" />
+      <module name="redis-spring-boot-starter" target="1.8" />
+      <module name="swagger-spring-boot-starter" target="1.8" />
+      <module name="user-center" target="1.8" />
+      <module name="workflow" target="1.8" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">

@@ -42,7 +42,7 @@ public class SecurityHandlerConfig {
     private ObjectMapper objectMapper;
 
     /**
-     * 登陆失败，返回401
+     * 登陆失败
      */
     @Bean
     public AuthenticationFailureHandler loginFailureHandler() {

@@ -2,13 +2,11 @@
 <project version="4">
   <component name="Encoding" defaultCharsetForPropertiesFiles="UTF-8">
     <file url="file://$PROJECT_DIR$" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/eureka-client-test" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/eureka-client-test/src/main/resources/application.yml" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/eureka-client-test2" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/eureka-client-test2/src/main/resources/application.yml" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mit-auth-server" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mit-business" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/mit-business/event-handling" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mit-business/user-center" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/mit-business/workflow" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mit-commons" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mit-commons/auth-client-spring-boot-starter" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mit-commons/common-spring-boot-starter" charset="UTF-8" />
@@ -18,6 +16,7 @@
     <file url="file://$PROJECT_DIR$/mit-commons/swagger-spring-boot-starter" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mit-gateway" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mit-gateway/src/main/resources/application.yml" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/mit-iot" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mit-monitor" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mit-monitor/src/main/resources/application.yml" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mit-register" charset="UTF-8" />

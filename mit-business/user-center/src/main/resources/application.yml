@@ -32,4 +32,10 @@ spring:
 
 security:
   oauth2:
-    ignored: /user/users-anon/**
+    ignored: /user/users-anon/**, /user/**, /dept/filter
+
+# feign远程调用配置
+feign:
+  hystrix:
+    # 开启熔断
+    enabled: true

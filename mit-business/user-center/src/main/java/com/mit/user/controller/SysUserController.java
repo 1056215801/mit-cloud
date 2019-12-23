@@ -1,9 +1,12 @@
 package com.mit.user.controller;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mit.common.constant.CommonConstant;
+import com.mit.common.dto.ClusterCommunity;
 import com.mit.common.dto.LoginAppUser;
 import com.mit.common.model.SysRole;
 import com.mit.common.model.SysUser;
@@ -14,6 +17,7 @@ import com.mit.common.web.Result;
 import com.mit.log.annotation.LogAnnotation;
 import com.mit.user.constant.UpmsPermissionCode;
 import com.mit.user.dto.UserDTO;
+import com.mit.user.feign.CommunityFeign;
 import com.mit.user.model.SysUserExcel;
 import com.mit.user.service.ISysUserService;
 import com.mit.user.vo.UserVO;
@@ -39,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,17 +58,20 @@ import java.util.Set;
 @Slf4j
 @RestController
 @RequestMapping("/user")
-@Api(tags = "用户管理模块api")
+@Api(tags = "用户管理")
 public class SysUserController {
     private static final String ADMIN_CHANGE_MSG = "超级管理员不给予修改";
 
     @Autowired
     private ISysUserService sysUserService;
 
+    @Resource
+    private CommunityFeign communityFeign;
+
     /**
      * 查询用户实体对象SysUser
      */
-    @GetMapping(value = "/users/name/{username}")
+    @GetMapping(value = "/name/{username}")
     @ApiOperation(value = "根据用户名查询用户实体")
     //@Cacheable(value = "user", key = "#username")
     public Result<SysUser> selectByUsername(@PathVariable String username) {
@@ -89,8 +97,39 @@ public class SysUserController {
     @ApiOperation(value = "获取当前登录用户信息")
     @GetMapping("/info")
     public Result<LoginAppUser> info() {
-        String username = Objects.requireNonNull(SecurityUtils.getUser()).getUsername();
-        return Result.succeed(sysUserService.getLoginAppUser(username));
+        String username = "";
+        try {
+            username = Objects.requireNonNull(SecurityUtils.getUser()).getUsername();
+        } catch (Exception e) {
+            return Result.failed("未登录");
+        }
+        LoginAppUser user = sysUserService.getLoginAppUser(username);
+        List<ClusterCommunity> communityList = new ArrayList<>();
+        switch (user.getLevel()) {
+            case 1:
+                //总账号admin
+                try {
+                    List list = communityFeign.getCommunityList().getDatas();
+
+                    list.stream().forEach(object -> {
+                        ClusterCommunity community = JSON.parseObject(JSON.toJSONString(object), new TypeReference<ClusterCommunity>(){});
+                        communityList.add(community);
+                    });
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                    return Result.failed("调用小区服务查询小区列表异常");
+                }
+                break;
+            case 8:
+                //小区账号
+                ClusterCommunity community = new ClusterCommunity(user);
+                communityList.add(community);
+                break;
+            default:
+                break;
+        }
+        user.setCommunityList(communityList);
+        return Result.succeed(user);
     }
 
     /**
@@ -104,14 +143,41 @@ public class SysUserController {
     }
 
     /**
+     * 通过用户名模糊查询
+     * @param username 用户名
+     * @return
+     */
+    @GetMapping("/filter")
+    public Result<List<SysUser>> filterByUserName(@RequestParam String username) {
+        QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.like("username", username);
+        return Result.succeed(sysUserService.list(queryWrapper));
+    }
+
+    /**
+     * 通过小区code查询用户
+     * @param communityCode 小区code
+     * @return
+     */
+    @GetMapping("/query/byCommunityCode")
+    public Result<SysUser> findByCommunityCode(@RequestParam String communityCode) {
+        QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("community_code", communityCode);
+        return Result.succeed(sysUserService.getOne(queryWrapper));
+    }
+
+    /**
      * 新增用户
      * @param userDTO 用户对象
      */
-    @PostMapping
-    @PreAuthorize("hasAuthority('" + UpmsPermissionCode.SYS_USER_ADD + "')")
+    @PostMapping(value = "/save")
+    //@PreAuthorize("hasAuthority('" + UpmsPermissionCode.SYS_USER_ADD + "')")
     //@CachePut(value = "user", key = "#sysUser.username")
     public Result saveSysUser(@RequestBody UserDTO userDTO) {
-        return Result.succeed(sysUserService.saveOrUpdateUser(userDTO));
+        if (sysUserService.getUserByUsername(userDTO.getUsername()) != null) {
+            return Result.failed("用户名重复");
+        }
+        return Result.succeed(sysUserService.saveUser(userDTO));
     }
 
     /**
@@ -119,13 +185,27 @@ public class SysUserController {
      * @param userDTO 用户对象
      */
     @PutMapping
-    @PreAuthorize("hasAuthority('" + UpmsPermissionCode.SYS_USER_EDIT + "')")
+    //@PreAuthorize("hasAuthority('" + UpmsPermissionCode.SYS_USER_EDIT + "')")
     //@CachePut(value = "user", key = "#sysUser.username")
     public Result updateSysUser(@RequestBody UserDTO userDTO) {
         if (null == userDTO.getId()) {
             return Result.failed("用户ID不能为空");
         }
-        return Result.succeed(sysUserService.updateById(userDTO));
+        return Result.succeed(sysUserService.updateUserById(userDTO));
+    }
+
+    /**
+     * 根据用户名修改用户，小区服务调用
+     * @param userDTO 用户对象
+     */
+    @PutMapping(value = "/updateByUsername")
+    //@PreAuthorize("hasAuthority('" + UpmsPermissionCode.SYS_USER_EDIT + "')")
+    //@CachePut(value = "user", key = "#sysUser.username")
+    public Result updateSysUserByUsername(@RequestBody UserDTO userDTO) {
+        if (null == userDTO.getUsername()) {
+            return Result.failed("用户名不能为空");
+        }
+        return Result.succeed(sysUserService.updateUserByUsername(userDTO));
     }
 
 
@@ -198,6 +278,26 @@ public class SysUserController {
             return Result.failed(ADMIN_CHANGE_MSG);
         }
         sysUserService.removeById(id);
+        return Result.succeed("删除成功");
+    }
+
+    /**
+     * 根据communityCode删除用户
+     * @param communityCode 小区code
+     * @return
+     */
+    @DeleteMapping(value = "/deleteByCommunityCode")
+    public Result deleteByCommunityCode(@RequestParam String communityCode) {
+        QueryWrapper<SysUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("community_code", communityCode);
+        SysUser sysUser = sysUserService.getOne(queryWrapper);
+        if (sysUser == null) {
+            return Result.succeed();
+        }
+        if ("admin".equals(sysUser.getUsername())) {
+            return Result.failed(ADMIN_CHANGE_MSG);
+        }
+        sysUserService.removeById(sysUser.getId());
         return Result.succeed("删除成功");
     }
 
