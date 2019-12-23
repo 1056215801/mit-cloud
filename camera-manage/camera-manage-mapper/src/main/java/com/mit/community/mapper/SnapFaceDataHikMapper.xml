@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mit.community.mapper.SnapFaceDataHikMapper">
+    <resultMap id="perceptionMap" type="com.mit.community.entity.hik.Vo.PerceptionVo">
+        <result property="installationLocation" column="installation_location" javaType="String" jdbcType="VARCHAR"/>
+        <result property="snapNumber" column="snapNumber" javaType="INTEGER" jdbcType="INTEGER"/>
+        <result property="strangerNumber" column="strangerNumber" javaType="INTEGER" jdbcType="INTEGER"/>
+    </resultMap>
+    <resultMap id="realTimeMap" type="com.mit.community.entity.hik.Vo.RealTimeVo">
+        <result property="installationLocation" column="installation_location" javaType="String" jdbcType="VARCHAR"/>
+        <result property="shootTime" column="shoot_time" javaType="Date"
+                jdbcType="DATE"/>
+        <result property="snapNumber" column="snapNumber" javaType="INTEGER" jdbcType="INTEGER"/>
+        <result property="peopleNumber" column="peopleNumber" javaType="INTEGER" jdbcType="INTEGER"/>
+    </resultMap>
+    <resultMap id="numberTypeMap" type="com.mit.community.entity.hik.Vo.NumberType">
+        <result property="faceDatabaseName" column="face_database_name" javaType="String" jdbcType="VARCHAR"/>
+        <result property="peopleNumber" column="peopleNumber" javaType="INTEGER" jdbcType="INTEGER"/>
+    </resultMap>
+    <resultMap id="cameraInfoMap" type="com.mit.community.entity.hik.Vo.CameraInfoVo">
+        <result property="imageUrl" column="image_url" javaType="String" jdbcType="VARCHAR"/>
+        <result property="shootTime" column="shoot_time" javaType="Date"
+                jdbcType="DATE"/>
+        <result property="deviceName" column="device_name" javaType="String" jdbcType="VARCHAR"/>
+        <result property="installationLocation" column="installation_location" javaType="String" jdbcType="VARCHAR"/>
+        <result property="peopleNumber" column="peopleNumber" javaType="INTEGER" jdbcType="INTEGER"/>
+    </resultMap>
+    <resultMap id="informationOverviewMap" type="com.mit.community.entity.hik.Vo.OverviewVo">
+        <result property="entryNumber" column="entryNumber" javaType="INTEGER" jdbcType="INTEGER"/>
+        <result property="leaveNumber" column="leaveNumber" javaType="INTEGER" jdbcType="INTEGER"/>
+        <result property="ordinaryNumber" column="ordinaryNumber" javaType="INTEGER" jdbcType="INTEGER"/>
+        <result property="specialNumber" column="specialNumber" javaType="INTEGER" jdbcType="INTEGER"/>
+    </resultMap>
+    <resultMap id="snapImageMap" type="com.mit.community.entity.hik.Vo.SnapImageVo">
+        <result property="id" column="id" javaType="INTEGER" jdbcType="INTEGER"/>
+        <result property="deviceName" column="device_name" javaType="String" jdbcType="VARCHAR"/>
+        <result property="deviceNumber" column="device_number" javaType="String" jdbcType="VARCHAR"/>
+        <result property="communityCode" column="communityCode" javaType="String" jdbcType="VARCHAR"/>
+        <result property="direction" column="direction" javaType="String" jdbcType="VARCHAR"/>
+        <result property="zoneName" column="zone_name" javaType="String" jdbcType="VARCHAR"/>
+        <result property="geographicCoordinates" column="geographic_coordinates" javaType="String" jdbcType="VARCHAR"/>
+        <result property="place" column="place" javaType="String" jdbcType="VARCHAR"/>
+        <result property="installationLocation" column="installation_location" javaType="String" jdbcType="VARCHAR"/>
+        <result property="shootTime" column="shoot_time" javaType="Date"
+                jdbcType="TIMESTAMP"/>
+        <result property="imageUrl" column="image_url" javaType="String" jdbcType="VARCHAR"/>
+    </resultMap>
+    <select id="getSnapData" resultMap="perceptionMap">
+        SELECT
+        device_info.installation_location,SUM(snap.id) snapNumber,str.strangerNumber
+        FROM
+        snap_face_data_hik snap
+        LEFT JOIN device_info ON snap.serial_number = device_info.serial_number LEFT JOIN (SELECT SUM(id) strangerNumber,serial_number FROM stranger WHERE stranger.communityCode=communityCode GROUP BY stranger.uncode) str ON snap.serial_number=str.serial_number
+        WHERE snap.communityCode IN
+        <foreach collection="communityCodes" item="code" separator="," open="(" close=")">
+            #{code}
+        </foreach> GROUP BY device_info.serial_number
+    </select>
+    <select id="getRealTime" resultMap="realTimeMap">
+        SELECT
+        device_info.installation_location,
+        snap.shoot_time,
+        COUNT(snap.shoot_time) snapNumber,
+        COUNT(DISTINCT snap.uncode) peopleNumber
+        FROM
+        (
+        SELECT
+        DATE_FORMAT(shoot_time, '%Y-%m-%d') shoot_time,
+        serial_number,
+        communityCode,
+        uncode
+        FROM
+        snap_face_data_hik
+        ) snap
+        LEFT JOIN device_info ON snap.serial_number = device_info.serial_number
+        WHERE
+        snap.communityCode IN
+        <foreach collection="communityCodes" item="code" separator="," open="(" close=")">
+            #{code}
+        </foreach>
+        GROUP BY
+        snap.shoot_time
+    </select>
+    <select id="getNumberType" resultMap="numberTypeMap">
+        SELECT
+        face_database_name,
+        COUNT(DISTINCT snap.uncode) peopleNumber,
+        DATE_FORMAT(snap.shoot_time, '%Y-%m-%d') shoot_time,
+        communityCode
+        FROM
+        snap_face_data_hik snap
+        WHERE
+        DATE_FORMAT(snap.shoot_time,'%Y-%m-%d')=CURDATE() AND snap.communityCode IN
+        <foreach collection="communityCodes" item="code" separator="," open="(" close=")">
+            #{code}
+        </foreach>
+        GROUP BY
+        snap.face_database_name
+    </select>
+    <select id="getWeekNumber" resultMap="numberTypeMap">
+        SELECT
+        face_database_name,
+        COUNT(DISTINCT snap.uncode) peopleNumber,
+        DATE_FORMAT(snap.shoot_time, '%Y-%m-%d') shoot_time,
+        communityCode
+        FROM
+        snap_face_data_hik snap
+        WHERE
+        DATE_FORMAT(snap.shoot_time,'%Y-%m-%d')>DATE_SUB(CURDATE(), INTERVAL 1 WEEK) AND snap.communityCode IN
+        <foreach collection="communityCodes" item="code" separator="," open="(" close=")">
+            #{code}
+        </foreach>
+        GROUP BY
+        snap.face_database_name
+    </select>
+       <select id="getCameraInfo" resultMap="cameraInfoMap">
+        SELECT
+        snap.image_url,
+        snap.shoot_time,
+        device_info.device_name,
+        device_info.installation_location,
+        COUNT(DISTINCT snap.uncode) peopleNumber
+        FROM
+        snap_face_data_hik snap
+        LEFT JOIN device_info ON snap.serial_number = device_info.serial_number
+        WHERE
+        snap.serial_number = #{serialNumber}
+       </select>
+       <select id="getInformationOverview" resultMap="informationOverviewMap">
+        SELECT
+	     snapOne.entryNumber,
+	     snapTwo.leaveNumber,
+         snapThree.ordinaryNumber,
+         snapfour.specialNumber
+         FROM
+	    (
+		SELECT
+			COUNT(
+				DISTINCT snap_face_data_hik.uncode
+			) entryNumber,
+			communityCode
+		 FROM
+			snap_face_data_hik
+		WHERE
+			snap_face_data_hik.direction = 1
+	    ) snapOne
+       LEFT JOIN (
+	     SELECT
+		COUNT(
+			DISTINCT snap_face_data_hik.uncode
+		) leaveNumber,
+		communityCode
+	   FROM
+		snap_face_data_hik
+	   WHERE
+		snap_face_data_hik.direction = 2
+      ) snapTwo ON snapOne.communityCode = snapTwo.communityCode
+      LEFT JOIN (
+	   SELECT
+		COUNT(DISTINCT snap_face_data_hik.uncode) ordinaryNumber,
+       communityCode
+	    FROM
+		snap_face_data_hik
+	  WHERE snap_face_data_hik.face_database_name LIKE '%白名单%'
+      ) snapThree ON snapThree.communityCode=snapOne.communityCode LEFT JOIN (
+	    SELECT
+		COUNT(DISTINCT snap_face_data_hik.uncode) specialNumber,
+       communityCode
+	    FROM
+		snap_face_data_hik
+	   WHERE snap_face_data_hik.face_database_name NOT LIKE '%白名单%'
+      ) snapfour ON snapOne.communityCode=snapfour.communityCode WHERE snapOne.communityCode IN
+        <foreach collection="communityCodes" item="code" separator="," open="(" close=")">
+        #{code}
+        </foreach>
+    </select>
+    <select id="getImageInfo" resultMap="snapImageMap">
+       SELECT
+     snap.id,
+	snap.shoot_time,
+	device.communityCode,
+	(
+		CASE device.direction
+		WHEN 1 THEN
+			'进'
+		WHEN 2 THEN
+			'出'
+		ELSE
+			'无'
+		END
+	) direction,
+	device.geographic_coordinates,
+	device.communityName,
+    device.device_name,
+    device.device_number,
+    CONCAT(device.communityName,'-',device.zone_name,'-',device.installation_location) place,
+    device.installation_location,
+    device.zone_name,
+    snap.image_url
+   FROM
+	snap_face_data_hik snap
+   LEFT JOIN device_info device ON snap.serial_number = device.serial_number
+   WHERE
+	snap.id = #{id}
+    </select>
+    <select id="getSnapImageList" resultMap="snapImageMap">
+          SELECT
+	device_info.device_name,
+	snap.shoot_time,
+	snap.id,
+	CONCAT(
+		snap.community_name,
+		'-',
+		device_info.zone_name,
+		'-',
+		snap.snapshot_site) place,
+    snap.image_url
+	FROM
+		snap_face_data_hik snap
+	LEFT JOIN device_info ON snap.serial_number = device_info.serial_number
+        <if test="ew.emptyOfWhere == false">
+            ${ew.customSqlSegment}
+        </if>
+    </select>
+</mapper>

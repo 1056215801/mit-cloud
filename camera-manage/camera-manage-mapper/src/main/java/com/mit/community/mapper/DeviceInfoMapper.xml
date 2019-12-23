@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mit.community.mapper.DeviceInfoMapper">
+	<!--<resultMap id="baseMap" type="com.mit.community.entity.hik.IntranetPenetration">
+		<result property="deviceNumber" column="device_number" javaType="String" jdbcType="VARCHAR"/>
+	</resultMap>-->
+	<resultMap id="baseMap" type="com.mit.community.entity.hik.Vo.EquipmentStatisticsVo">
+		<result property="deviceTypeName" column="device_type_name" javaType="String" jdbcType="VARCHAR"/>
+		<result property="total" column="total" javaType="INTEGER" jdbcType="INTEGER"/>
+	</resultMap>
+	<update id="updateToken">
+		update device_info set
+		token=#{token}
+		where device_id=#{deviceId}
+	</update>
+
+	<update id="updateOutCount">
+		update out_people set
+		outCount = outCount + 1
+	</update>
+	<select id="getInfo" resultType="com.mit.community.entity.hik.IntranetPenetration">
+         SELECT
+	localIpAdress
+    FROM
+	device_info
+    LEFT JOIN intranet_penetration ON device_info.communityCode = intranet_penetration.community_code
+     WHERE
+	device_info.serial_number=#{arr}
+	</select>
+	<select id="getDeviceTotal" resultMap="baseMap">
+		SELECT
+	CASE device_type
+  WHEN 1 THEN
+	'普通摄像机'
+  WHEN 2 THEN
+	'人脸抓拍摄像机'
+  WHEN 3 THEN
+	'全结构化摄像机'
+  END AS device_type_name,
+  COUNT(id) total
+  FROM
+	device_info WHERE communityCode IN <foreach collection="communityCodeList" item="communityCode" open="(" separator="," close=")">
+          #{communityCode}
+	</foreach>
+  GROUP BY
+	device_info.device_type
+  UNION ALL
+	SELECT
+		CASE device_type
+	WHEN 1 THEN
+		'紧急报警箱'
+	WHEN 2 THEN
+		'紧急报警按钮'
+	WHEN 3 THEN
+		'紧急报警立杆'
+	END AS device_type_name,
+	COUNT(id) total
+    FROM
+	alarm_device WHERE community_code IN <foreach collection="communityCodeList" item="communityCode" open="(" separator="," close=")">
+		#{communityCode}
+	</foreach>
+    GROUP BY
+	alarm_device.device_type
+	</select>
+</mapper>
