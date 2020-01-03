@@ -40,10 +40,13 @@ public class PersonFaceImages implements Serializable {
     @TableField("img_url")
     private String imgUrl;
 
-    @ApiModelProperty(value = "人脸库唯一标识:抓拍记录返回")
+    @ApiModelProperty(value = "人脸唯一标识:抓拍记录返回")
     @TableField("uncode")
     private String uncode;
 
+    @ApiModelProperty(value = "人脸库唯一标识")
+    @TableField("faceGroupIndexCode")
+    private String faceGroupIndexCode;
     @ApiModelProperty(value = "人脸分类")
     @TableField("face_classification")
     private String faceClassification;
@@ -62,7 +65,7 @@ public class PersonFaceImages implements Serializable {
 
     @ApiModelProperty(value = "证件类型:0未知,1身份证,2护照")
     @TableField("iDType")
-    private Integer iDType;
+    private String iDType;
 
     @ApiModelProperty(value = "证件号")
     @TableField("idNo")
@@ -86,7 +89,12 @@ public class PersonFaceImages implements Serializable {
     @JsonFormat(locale = "zh", timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime modifiedTime;
 
-    @TableField("face_database_name")
-    private String faceDatabaseName;
+    @TableField("faceGroupName")
+    private String faceGroupName;
 
+    @TableField("phone")
+    private String phone;
+
+    @TableField("number_type")
+    private Integer numberType;
 }

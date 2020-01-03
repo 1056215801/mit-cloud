@@ -14,6 +14,7 @@ import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -38,8 +39,10 @@ import java.util.Map;
 @EnableTransactionManagement
 @EnableSwagger2Doc
 @ServletComponentScan
+@MapperScan(basePackages = {"com.mit.community.mapper", "com.mit.community.*.*.mapper"})
 @EnableResourceServer
 //如果web监听器 ServletContextListener没有和启动类下一个包下@ServletComponentScan(value= "com.smp.listener")这样才能扫到对应包下类，如果是多个包就和@ComponentScan一样处理加{}
+@ComponentScan(value = "com.mit")
 public class CameraManageBootstrap {
     public static void main(String[] args) {
         new SpringApplicationBuilder(CameraManageBootstrap.class).web(WebApplicationType.SERVLET).run(args);

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.annotations.ApiOperation;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -67,4 +68,8 @@ public class SnapVehicle implements Serializable {
     @ApiModelProperty("图片路径")
     @TableField("imageUrl")
     private String imageUrl;
+
+    @ApiModelProperty("抓拍地点")
+    @TableField("snapshotSite")
+    private String snapshotSite;
 }

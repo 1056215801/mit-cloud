@@ -12,6 +12,7 @@ import com.mit.community.entity.hik.SnapFaceDataHik;
 import com.mit.community.entity.hik.SnapVehicle;
 import com.mit.community.entity.hik.Vo.*;
 import com.mit.community.feign.CommunityFeign;
+import com.mit.community.feign.FileUploadFeign;
 import com.mit.community.service.com.mit.community.service.hik.DeviceInfoService;
 import com.mit.community.service.com.mit.community.service.hik.DataDictionaryService;
 import com.mit.community.service.com.mit.community.service.hik.SnapFaceDataHikService;
@@ -27,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.PostConstruct;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -46,45 +48,67 @@ import java.util.List;
 public class PlatformController {
 
     @Autowired
-    private SnapFaceDataHikService snapFaceDataHikService;
+    public SnapFaceDataHikService snapFaceDataHikService;
     @Autowired
-    private DeviceInfoService deviceInfoService;
+    public DeviceInfoService deviceInfoService;
     @Autowired
-    private CommunityFeign communityFeign;
+    public CommunityFeign communityFeign;
     @Autowired
-    private SnapVehicleService snapVehicleService;
+    public SnapVehicleService snapVehicleService;
     @Autowired
-    private DataDictionaryService dataDictionaryService;
-    @PostMapping("/KeyBayonetPerception")
-    @ApiOperation("重要卡口感知数据")
-    public Result KeyBayonetPerception(@RequestParam("communityCodes") List<String> communityCodes){
-
-            List<PerceptionVo> list=snapFaceDataHikService.getSnapData(communityCodes);
-
-
-     return Result.succeed(list);
+    public DataDictionaryService dataDictionaryService;
+    @Autowired
+    public FileUploadFeign fileUploadFeign;
+    private static PlatformController platformController;
+    @PostConstruct
+    public void init(){
+        platformController=this;
+        platformController.fileUploadFeign=this.fileUploadFeign;
     }
-
-    @PostMapping("/RealTimePerception")
-    @ApiOperation("实时进出感知")
-    public Result RealTimePerception(@RequestParam("communityCodes")List<String> communityCodes){
-
-            List<RealTimeVo> list=snapFaceDataHikService.getRealTime(communityCodes);
+    public String getUploadImageUrl(String base64Url){
+        Result result = fileUploadFeign.base64(base64Url);
+        String datas = (String)result.getDatas();
+        return datas;
+    }
+    @PostMapping("/numberType")
+    @ApiOperation("抓拍人数类型感知")
+    @ApiImplicitParams({
+    @ApiImplicitParam(name = "communityCodes",value = "小区编号",paramType = "query"),
+    @ApiImplicitParam(name = "dateType",value = "小区编号:1为当天数据,7为近七日数据",paramType = "query")
+    })
+    public Result numberType(String communityCodes,@RequestParam("dateType")Integer dateType){
+        String[] split = communityCodes.split(",");
+        List<String> asList = Arrays.asList(split);
+        List<NumberType> list=null;
+        if (dateType==1){
+            list=snapFaceDataHikService.getNumberType(asList);
+        }else if (dateType==7){
+            list=snapFaceDataHikService.getWeekNumber(asList);
+        }
 
         return Result.succeed(list);
     }
 
-    @PostMapping("/numberType")
-    @ApiOperation("抓拍人数类型感知")
-    public Result numberType(@RequestParam("communityCodes")List<String> communityCodes,@RequestParam("dateType")Integer dateType){
-        List<NumberType> list=null;
-            if (dateType==1){
-                list=snapFaceDataHikService.getNumberType(communityCodes);
-            }else if (dateType==7){
-                list=snapFaceDataHikService.getWeekNumber(communityCodes);
-            }
+    @PostMapping("/KeyBayonetPerception")
+    @ApiOperation("重要卡口感知数据")
+    @ApiImplicitParam(name = "communityCodes",value = "小区编号",paramType = "query")
+    public Result KeyBayonetPerception(String communityCodes){
+        String[] split = communityCodes.split(",");
+        List<String> asList = Arrays.asList(split);
+        List<PerceptionVo> list=snapFaceDataHikService.getSnapData(asList);
 
-           return Result.succeed(list);
+
+     return Result.succeed(list);
+    }
+    @PostMapping("/RealTimePerception")
+    @ApiImplicitParam(name = "communityCodes",value = "小区编号",paramType = "query")
+    @ApiOperation("实时进出感知")
+    public Result RealTimePerception(String communityCodes){
+            String[] split = communityCodes.split(",");
+            List<String> asList = Arrays.asList(split);
+            List<RealTimeVo> list=snapFaceDataHikService.getRealTime(asList);
+
+        return Result.succeed(list);
     }
     @PostMapping("/cameraInformation")
     @ApiOperation("获得摄像机信息")
@@ -95,9 +119,12 @@ public class PlatformController {
 
     @PostMapping("/informationOverview")
     @ApiOperation("感知信息总览")
-    public Result informationOverview(@RequestParam("communityCodes") List<String> communityCodes){
-          OverviewVo overviewVo=snapFaceDataHikService.getInformationOverview(communityCodes);
-          overviewVo.setResidentNumber(overviewVo.getEntryNumber()-overviewVo.getLeaveNumber());
+    @ApiImplicitParam(name = "communityCodes",value = "小区编号",paramType = "query")
+    public Result informationOverview(String communityCodes){
+        String[] split = communityCodes.split(",");
+        List<String> asList = Arrays.asList(split);
+        OverviewVo overviewVo=snapFaceDataHikService.getInformationOverview(asList);
+        overviewVo.setResidentNumber(overviewVo.getEntryNumber()-overviewVo.getLeaveNumber());
         return Result.succeed(overviewVo);
     }
     @PostMapping("/getSnapImage")
@@ -170,7 +197,9 @@ public class PlatformController {
     }
     @PostMapping("/getImageUrl")
     @ApiOperation("获取图片地址")
-    public Result getImageUrl(String imageUrl,String serialNumber){
+    public Result getImageUrl(String base64Url,String serialNumber){
+        Result result = fileUploadFeign.base64(base64Url);
+        String imageUrl = (String)result.getDatas();
         log.debug("获取抓拍imageUrl="+imageUrl);
         log.debug("获取抓拍serialNumber"+serialNumber);
        /* System.out.println("imageUrl="+imageUrl);
@@ -209,11 +238,6 @@ public class PlatformController {
     @ApiOperation("获取抓拍图片详情")
     public Result getImageInfo(Integer id){
         SnapImageVo snapImageVo=snapFaceDataHikService.getImageInfo(id);
-        /*System.out.println( snapImageVo.getShootTime());
-        Result baseInfo = communityFeign.getBaseInfo(snapImageVo.getCommunityCode());
-        Object datas = baseInfo.getDatas();
-        JSONObject jsonObject = JSONObject.fromObject(datas);
-        ClusterCommunity community = (ClusterCommunity)JSONObject.toBean(jsonObject, ClusterCommunity.class);*/
         ClusterCommunity community = communityFeign.getClusterCommunityByCommunityCode(snapImageVo.getCommunityCode());
         if (community!=null) {
             snapImageVo.setDetailedAddress(community.getProvinceName()
@@ -223,7 +247,9 @@ public class PlatformController {
     }
     @PostMapping("/getJsonInfo")
     @ApiOperation("获取抓拍json数据")
-    public void getJsonInfo(String json,String imageUrl){
+    public void getJsonInfo(String json,String base64Url){
+        Result result = fileUploadFeign.base64(base64Url);
+        String imageUrl = (String)result.getDatas();
         SnapVehicle snapVehicle=new SnapVehicle();
         SnapFaceDataHik snapFaceDataHik=new SnapFaceDataHik();
         System.out.println("获取抓拍json数据"+json);
@@ -303,6 +329,7 @@ public class PlatformController {
                     snapVehicle.setShootTime(new Date());
                     snapVehicle.setCommunityCode(deviceInfo.getCommunityCode());
                     snapVehicle.setImageUrl(imageUrl);
+                    snapVehicle.setSnapshotSite(deviceInfo.getInstallationLocation());
                     snapVehicleService.save(snapVehicle);
                 }
                 if (human!=null) {
@@ -318,6 +345,7 @@ public class PlatformController {
                     JSONObject trousersType = property.getJSONObject(8);
                     JSONObject mask = property.getJSONObject(9);
                     JSONObject hairStyle = property.getJSONObject(10);
+                    JSONObject ride = property.getJSONObject(12);
                     snapFaceDataHik.setJacketColor((String) jacketColor.get("value"));
                     snapFaceDataHik.setPantsColor((String) pantsColor.get("value"));
                     snapFaceDataHik.setImageUrl(imageUrl);
@@ -386,6 +414,17 @@ public class PlatformController {
                         snapFaceDataHik.setHairstyle(2);
                     }else {
                         snapFaceDataHik.setHairstyle(0);
+                    }
+                    if (((String)ride.get("description")).equalsIgnoreCase("ride")){
+                        if (((String)ride.get("value")).equalsIgnoreCase("yes")) {
+                            snapFaceDataHik.setRide(1);
+                        }else if (((String)ride.get("value")).equalsIgnoreCase("no")){
+                            snapFaceDataHik.setRide(2);
+                        }else {
+                            snapFaceDataHik.setRide(0);
+                        }
+                    }else {
+                        snapFaceDataHik.setRide(0);
                     }
                     snapFaceDataHikService.save(snapFaceDataHik);
                 }

@@ -125,8 +125,8 @@ eureka:
 
   client:
     service-url:
-      # eureka-server的地址，这里开启了身份验证，下面用户名密码是Eureka服务端开启认证的用户密码
-      defaultZone: http://${eureka-server-user:admin}:${eureka-server-password:mit123456}@${eureka-server-host:120.24.163.79}:${eureka-server-port:8761}/eureka/
+      # eureka-server的地址，这里开启了身份验证，下面用户名密码是Eureka服务端开启认证的用户密码120.24.163.79
+      defaultZone: http://${eureka-server-user:admin}:${eureka-server-password:mit123456}@${eureka-server-host:192.168.1.130}:${eureka-server-port:8761}/eureka/
 
 # 必须配置
 feign:
@@ -245,7 +245,7 @@ hik-manager:
 
 security:
   oauth2:
-    ignored: /hkFace/**, /hkFaceGroup/**, /hkRecognitionPlan/**, /hkHardware/**, /device/**, /video/**, /wifi/**, /platform/**, /alarmDevice/**, /alarmmessage/**
+    ignored: /hkFace/**, /hkFaceGroup/**, /hkRecognitionPlan/**, /hkHardware/**, /device/**, /video/**, /wifi/**, /platform/**, /alarmDevice/**, /alarmmessage/**, /snapVehicle/**
 zuul:
   host:
     connect-timeout-millis: 10000
@@ -253,3 +253,8 @@ zuul:
 
 showDeviceUrl: http://23zh498270.wicp.vip/cloud-service/hkVideoDevice/showDevices
 localIpAdress: http://23zh498270.wicp.vip
+#url: http://120.24.163.79:8765/cloud-service/platform/getImageUrl
+#jsonUrl: http://120.24.163.79:8765/cloud-service/platform/getJsonInfo
+#alarmUrl: http://120.24.163.79:8765/cloud-service/alarmDevice/getAlarmInfo
+#communityCode: d58a5663fac24da3b7c618e49aa74277
+#dllPath: F:/lib/HCNetSDK.dll

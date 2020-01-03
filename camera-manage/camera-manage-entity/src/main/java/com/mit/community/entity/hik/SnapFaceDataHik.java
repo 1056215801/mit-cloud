@@ -132,6 +132,10 @@ public class SnapFaceDataHik implements Serializable {
     @TableField("hairstyle")
     private Integer hairstyle;
 
+    @ApiModelProperty(value = "骑车:0未知,1是,2否")
+    @TableField("ride")
+    private Integer ride;
+
     @ApiModelProperty(value = "renyuanfenlei")
     @TableField("face_classification")
     private String faceClassification;
