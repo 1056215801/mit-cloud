@@ -79,4 +79,16 @@ public class DeviceInfoVo {
 
     @ApiModelProperty("街道名")
     private String streetName;
+
+    @ApiModelProperty("nvr序列号编码")
+    @TableField("nvr_serial_number")
+    private String nvrSerialNumber;
+
+    @ApiModelProperty("摄像头账号")
+    @TableField("username")
+    private String username;
+
+    @ApiModelProperty("摄像头密码")
+    @TableField("password")
+    private String password;
 }

@@ -1,8 +1,8 @@
 package util;
 
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.httpclient.util.HttpURLConnection;
-import sun.misc.BASE64Decoder;
+import org.json.JSONObject;
+//import sun.misc.BASE64Decoder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,11 +39,11 @@ public class Utils {
         return sb.toString();
     }
 
-    public static byte[] base64ToByte(String base64String) throws IOException{
-        BASE64Decoder decoder = new BASE64Decoder();
-        byte[] b = decoder.decodeBuffer(base64String);
-        return b;
-    }
+//    public static byte[] base64ToByte(String base64String) throws IOException{
+//        BASE64Decoder decoder = new BASE64Decoder();
+//        byte[] b = decoder.decodeBuffer(base64String);
+//        return b;
+//    }
 
     public static LocalDateTime getDateTimeOfTimestamp(long timestamp) {
         Instant instant = Instant.ofEpochMilli(timestamp);
@@ -84,7 +84,7 @@ public class Utils {
              * 返回结果示例
              */
             System.err.println("result:" + result);
-            JSONObject jsonObject = JSONObject.parseObject(result);
+            JSONObject jsonObject = new JSONObject(result);
             String access_token = jsonObject.getString("access_token");
             return access_token;
         } catch (Exception e) {

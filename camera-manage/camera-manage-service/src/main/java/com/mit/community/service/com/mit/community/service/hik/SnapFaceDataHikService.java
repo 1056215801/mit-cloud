@@ -26,10 +26,10 @@ public class SnapFaceDataHikService extends ServiceImpl<SnapFaceDataHikMapper,Sn
     private SnapFaceDataHikMapper snapFaceDataHikMapper;
 
 
-    public List<PerceptionVo> getSnapData(List<String> communityCode) {
+    public PerceptionVo getSnapData(List<String> serialNumbers) {
         System.out.println("");
-        List<PerceptionVo> list = snapFaceDataHikMapper.getSnapData(communityCode);
-        return list;
+        PerceptionVo perceptionVo = snapFaceDataHikMapper.getSnapData(serialNumbers);
+        return perceptionVo;
     }
 
 
@@ -60,7 +60,7 @@ public class SnapFaceDataHikService extends ServiceImpl<SnapFaceDataHikMapper,Sn
     }
 
 
-    public IPage<SnapImageVo> getSnapImageList(String startTime, String endTime, String communityCodes, String snapshotSite, Integer pageNum, Integer pageSize, String jacketColor, String pantsColor, Integer jacket, Integer pants, Integer bag, Integer things, Integer hat, Integer mask, Integer hairstyle, Integer sex, Integer glass) {
+    public IPage<SnapImageVo> getSnapImageList(String startTime, String endTime, String communityCodes, String snapshotSite, Integer pageNum, Integer pageSize, String jacketColor, String pantsColor, Integer jacket, Integer pants, Integer bag, Integer things, Integer hat, Integer mask, Integer hairstyle, Integer sex, Integer glass,Integer ride) {
         String[] split = communityCodes.split(",");
         List<String> communityCodeList = Arrays.asList(split);
         try {
@@ -120,6 +120,9 @@ public class SnapFaceDataHikService extends ServiceImpl<SnapFaceDataHikMapper,Sn
             if (glass!=null) {
                 wrapper.eq("glass",glass);
             }
+            if (ride!=null) {
+                wrapper.eq("ride",ride);
+            }
             wrapper.orderByDesc("shoot_time");
 
             return baseMapper.getSnapImageList(page,wrapper);
@@ -128,5 +131,9 @@ public class SnapFaceDataHikService extends ServiceImpl<SnapFaceDataHikMapper,Sn
         } finally {
         }
         return null;
+    }
+
+    public List<SnapImageVo> getSnapList(String serialNumber) {
+        return baseMapper.getSnapList(serialNumber);
     }
 }

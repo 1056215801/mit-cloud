@@ -45,9 +45,9 @@ public class VideoController {
     private IntranetPenetrationService intranetPenetrationService;
     @PostMapping("/startVideo")
     @ApiOperation("开启视频")
-    public Result startVideo(String serialNumber,String communityCode,String ip){
-
+    public Result startVideo(String serialNumber,Integer deviceType){
         StringBuilder stringBuffer = new StringBuilder();
+     /*   StringBuilder stringBuffer = new StringBuilder();
         QueryWrapper<IntranetPenetration> queryWrapper=new QueryWrapper<>();
         queryWrapper.eq("community_code",communityCode);
         IntranetPenetration intranetPenetration = intranetPenetrationService.getOne(queryWrapper);
@@ -64,14 +64,17 @@ public class VideoController {
         if (transcode!=null){
             transcodeChannel = transcode.getChannel();
         }
-
+*/
         try {
             NameValuePair[] data = {new NameValuePair("serialNumber", serialNumber),
-                    new NameValuePair("channel", transcodeChannel)
+                /*    new NameValuePair("channel", transcodeChannel)*/
             };
-//            String url="http://192.168.1.59:8011/cloud-service/hkVideoDevice/startVideo";
-//             String url="http://23zh498270.wicp.vip/cloud-service/hkVideoDevice/startVideo";
-           String url=localIpAdress+"/cloud-service/hkVideoDevice/startVideo";
+           String url="";
+            if (deviceType==1){
+                url=UrlConfig.LOCALIPADRESS+"/videoStream-server/hkVideoDevice/startVideo";
+            }else {
+                url=UrlConfig.LOCALIPADRESS+"/videoStream-server/hkVideoDevice/start";
+            }
             HttpClient httpClient = new HttpClient();
             httpClient.getParams().setBooleanParameter("http.protocol.expect-continue", false);
             httpClient.getParams().setContentCharset("utf-8");
@@ -99,7 +102,7 @@ public class VideoController {
       @PostMapping("/stopVideo")
       @ApiOperation("关闭视频")
       public Result stopVideo(String videoUrl){
-          String [] arrs={};
+         /* String [] arrs={};
           if (!StringUtils.isEmpty(videoUrl)){
               arrs=videoUrl.split("/");
           }
@@ -107,7 +110,7 @@ public class VideoController {
           String localIpAdress="";
           if (penetration!=null) {
               localIpAdress=penetration.getLocalIpAdress();
-          }
+          }*/
           StringBuilder stringBuffer = new StringBuilder();
           try {
               NameValuePair[] data = {
@@ -115,7 +118,7 @@ public class VideoController {
               };
 //              String url="http://192.168.1.59:8011/cloud-service/hkVideoDevice/stopVideo2";
 //                String url="http://23zh498270.wicp.vip/cloud-service/hkVideoDevice/stopVideo2";
-              String url=localIpAdress+"/cloud-service/hkVideoDevice/stopVideo2";
+              String url=UrlConfig.LOCALIPADRESS+"/videoStream-server/hkVideoDevice/stopVideo2";
               HttpClient httpClient = new HttpClient();
               httpClient.getParams().setBooleanParameter("http.protocol.expect-continue", false);
               httpClient.getParams().setContentCharset("utf-8");

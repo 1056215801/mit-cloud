@@ -32,7 +32,7 @@ public interface HCNetSDK extends StdCallLibrary {
     String path = classpath.substring(1,classpath.indexOf("classes")).replace("/", File.separator)+"lib"+File.separator+"HCNetSDK";*/
    /* HCNetSDK INSTANCE = (HCNetSDK) Native.loadLibrary(System.getProperty("user.dir")+"\\src\\main\\resources\\lib\\HCNetSDK.dll",
             HCNetSDK.class);d:\lib\*/
-//    HCNetSDK INSTANCE = (HCNetSDK) Native.loadLibrary("HCNetSDK", HCNetSDK.class);
+//   HCNetSDK INSTANCE = (HCNetSDK) Native.loadLibrary("HCNetSDK", HCNetSDK.class);
    HCNetSDK INSTANCE = (HCNetSDK) Native.loadLibrary("d:\\lib\\HCNetSDK", HCNetSDK.class);
     /***宏定义***/
     //常量

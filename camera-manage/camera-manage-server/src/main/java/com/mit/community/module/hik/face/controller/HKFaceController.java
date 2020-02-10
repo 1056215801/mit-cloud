@@ -1,13 +1,21 @@
 package com.mit.community.module.hik.face.controller;
 
 
+import com.alibaba.druid.sql.visitor.functions.If;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mit.common.dto.LoginAppUser;
 import com.mit.common.web.Result;
+import com.mit.community.entity.User;
 import com.mit.community.entity.hik.*;
+import com.mit.community.feign.CommunityFeign;
+import com.mit.community.feign.EventFeign;
+import com.mit.community.feign.FileUploadFeign;
+import com.mit.community.feign.SysDeptFeign;
 import com.mit.community.service.ConfigInfoService;
 import com.mit.community.service.com.mit.community.service.hik.*;
 import com.mit.community.util.*;
@@ -23,14 +31,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+//import sun.misc.BASE64Encoder;
 import util.Base64Util;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -53,6 +62,14 @@ public class HKFaceController {
     @Autowired
     private StrangerService strangerService;
     @Autowired
+    private SysDeptFeign sysDeptFeign;
+    @Autowired
+    private CommunityFeign communityFeign;
+    @Autowired
+    private FileUploadFeign fileUploadFeign;
+    @Autowired
+    private EventFeign eventFeign;
+    @Autowired
     private PersonFaceImagesService personFaceImagesService;
     private HKFaceController hkFaceController;
     @PostConstruct
@@ -71,7 +88,6 @@ public class HKFaceController {
     private String appkey;
     @Value("${hik-manager.appsecret}")
     private String appsecret;
-
     private String faceUrlGroup;
     private Integer snapFaceDataHikId;
 
@@ -134,36 +150,183 @@ public class HKFaceController {
         }
         return Result.succeed(iPage);
     }
+    @RequestMapping("/pictureOneToManySearch")
+    @ApiOperation(value = "人脸分组1VN检索", notes = "minSimilarity required 指定检索的最小相似度 ，searchNum 指定所有识别资源搜索张数的总和的最大值 ")
+    public Result pictureOneToManySearch(String toBase64Byte,String imageUrl,List<String> faceGroupNames,
+                                         Integer minSimilarity, Integer searchNum,
+                                         Integer pageSize, Integer pageNo,
+                                         String communityCode,Integer id,String communityName,String geographicCoordinates,Integer zoneId,String zoneName,String installationLocation) {
+        config();
+        if (minSimilarity == null) {
+            minSimilarity = 75;
+        }
+        String getRootApi = ARTEMIS_PATH + "/api/frs/v1/application/oneToMany";
+        Map<String, String> path = new HashMap<String, String>(2) {
+            {
+                put("https://", getRootApi);//根据现场环境部署确认是http还是https
+            }
+        };
+        String contentType = "application/json";
+        JSONObject jsonBody = new JSONObject();
+        jsonBody.put("pageNo", pageNo);
+        jsonBody.put("pageSize", pageSize);
+        jsonBody.put("searchNum", searchNum);
+        jsonBody.put("minSimilarity", minSimilarity);
+        // jsonBody.put("facePicUrl", faceInfo.getFaceUrl());
+      /*  String faceUrl = faceInfo.getFaceUrl();
+        if (faceUrl == null || "".equals(faceUrl)) {
+            return Result.failed("faceUrl为空!");
+        }*/
+        List<String> faceGroupIndexCodes = new ArrayList<String>();
+        for (String faceGroupName : faceGroupNames) {
+            String faceGroupIndexCode = queryFaceGroup(null, faceGroupName);
+            faceGroupIndexCodes.add(faceGroupIndexCode);
+        }
 
-    @RequestMapping("/addFaceInfoToHK")
-    @ApiOperation(value = "把人脸信息加入到HK人脸库并插入自己的数据库", notes = "")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "faceGroupName", value = "人脸库名", required = true, paramType = "query"),
-            @ApiImplicitParam(name = "sex", value = "性别", required = true, paramType = "query"),
-            @ApiImplicitParam(name = "iDType", value = "身份证类型", required = true, paramType = "query"),
-            @ApiImplicitParam(name = "idNo", value = "身份证编号", required = true, paramType = "query"),
-            @ApiImplicitParam(name = "name", value = "人脸名称", required = true, paramType = "query"),
-            @ApiImplicitParam(name = "faceClassification", value = "人脸分类", required = true, paramType = "query"),
-            @ApiImplicitParam(name = "phone", value = "电话号码", required = true, paramType = "query"),
-            @ApiImplicitParam(name = "numberType", value = "号码类型", required = true, paramType = "query")
-    })
-    public Result addFaceToHK(String faceGroupName, String sex, String iDType, String idNo, String name, String faceClassification, String phone, Integer numberType, MultipartFile file) {
-        String faceGroupIndexCode = queryFaceGroup(null, faceGroupName);
-        FaceInfo faceInfo = new FaceInfo();
-        String url = "";
+     /*   byte[] bytes;
+        String faceUrl1 = null;
         try {
-            url = UploadUtil.upload(file);
+            bytes = ImgCompass.convertImageToByteArray(faceUrl, 200);
+            faceUrl1 = Base64Util.encode(bytes);
         } catch (IOException e) {
             e.printStackTrace();
+        }*/
+        jsonBody.put("facePicBinaryData", toBase64Byte);
+       /* jsonBody.put("name", faceInfo.getName());
+        jsonBody.put("sex", faceInfo.getSex());
+        jsonBody.put("certificateType", faceInfo.getCertificateType());
+        jsonBody.put("certificateNum", faceInfo.getCertificateNum());*/
+        jsonBody.put("faceGroupIndexCodes", faceGroupIndexCodes);
+        String body = jsonBody.toJSONString();
+        String result = null;
+            result = ArtemisHttpUtil.doPostStringArtemis(path, body, null, null, contentType);
+        JSONObject jsonToken = (JSONObject) JSONObject.parse(result);
+        JSONObject jsonObject=(JSONObject)jsonToken.get("data");
+        Integer similarity=0;
+        String certificateNum="";
+        if (jsonObject!=null){
+            JSONArray jsonArray = jsonObject.getJSONArray("list");
+            JSONObject object=null;
+            if (jsonArray.size()!=0){
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    object = (JSONObject) jsonArray.get(i);
+                    similarity=(Integer)object.get("similarity");
+                    JSONObject faceInfo = (JSONObject) object.get("faceInfo");
+                    certificateNum = (String) faceInfo.get("certificateNum");
+                    if (StringUtils.isNotBlank(certificateNum)){
+                        break;
+                    }
+                }
+            }
+        }
+        List<PersonFaceImages> faceImagesList=new ArrayList<>();
+        PersonFaceImages personFaceImages=null;
+        QueryWrapper<PersonFaceImages> wrapper=new QueryWrapper<>();
+        if (StringUtils.isNotEmpty(certificateNum)) {
+            wrapper.eq("idNo",certificateNum);
+            personFaceImages = personFaceImagesService.getOne(wrapper);
+        }
+        QueryWrapper<SnapFaceDataHik> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq("id",id);
+        SnapFaceDataHik snapFaceDataHik = snapFaceDataHikService.getOne(queryWrapper);
+        String faceDatabaseName="";
+        String faceClassification="";
+        String uncode="";
+        String code="";
+        String idNo="";
+        EventInfoDTO eventInfoDTO=new EventInfoDTO();
+        eventInfoDTO.setCommunityCode(communityCode);
+        eventInfoDTO.setEmergencyLevel(1);
+        if (personFaceImages==null) {
+            Result res = addFaceToHK(faceGroupNames.get(4), "", "", "", faceGroupNames.get(4), "", "", 1, toBase64Byte, imageUrl, communityCode);
+            PersonFaceImages faceImages = (PersonFaceImages)res.getDatas();
+            if (faceImages!=null) {
+                faceDatabaseName = faceImages.getFaceDatabaseName();
+                faceClassification = faceImages.getFaceClassification();
+                uncode = faceImages.getUncode();
+            }
+        }else{
+            faceDatabaseName = personFaceImages.getFaceDatabaseName();
+            faceClassification = personFaceImages.getFaceClassification();
+            uncode = personFaceImages.getUncode();
+            idNo = personFaceImages.getIdNo();
+            code = personFaceImages.getCommunityCode();
+            snapFaceDataHik.setIdNo(idNo);
+        }
+        String[] split = faceDatabaseName.split("-");
+        if ("重点关注".equalsIgnoreCase(split[1])){
+            eventInfoDTO.setEventCode("FOCUS_PEOPLE");
+            eventInfoDTO.setHappenedTime(new Date());
+            eventInfoDTO.setEmergencyLevel(1);
+            eventInfoDTO.setCommunityName(communityName);
+            Result res = communityFeign.getHouseHoldInfoByCardNum(idNo);
+            Object datas = res.getDatas();
+            String json = JSON.toJSONString(datas);
+            eventInfoDTO.setExtension(json);
+            eventInfoDTO.setZoneId(String.valueOf(zoneId));
+            eventInfoDTO.setLocation(installationLocation);
+            eventInfoDTO.setZoneName(zoneName);
+            if (StringUtils.isNotBlank(geographicCoordinates)) {
+                String[] arr = geographicCoordinates.split(",");
+                eventInfoDTO.setLongitude(arr[0]);
+                eventInfoDTO.setLatitude(arr[1]);
+            }
+            eventFeign.handing(eventInfoDTO);
+        }
+        snapFaceDataHik.setFaceDatabaseName(faceDatabaseName);
+        snapFaceDataHik.setFaceClassification(faceClassification);
+        snapFaceDataHik.setUncode(uncode);
+        snapFaceDataHik.setSimilarity(similarity);
+        snapFaceDataHikService.updateById(snapFaceDataHik);
+        List<Map> list = new ArrayList<>();
+        if ("0".equals(jsonToken.getString("code"))) {
+            Map data = (Map) jsonToken.get("data");
+            list = (List<Map>) data.get("list");
+            System.out.println("----------" + jsonToken.getString("data"));
+        }
+        return Result.succeed(list);
+    }
+    @PostMapping("/addFaceInfoToHK")
+    @ApiOperation(value = "把人脸信息加入到HK人脸库并插入自己的数据库", notes = "")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "faceGroupName", value = "人脸库名", paramType = "query"),
+            @ApiImplicitParam(name = "sex", value = "性别", paramType = "query"),
+            @ApiImplicitParam(name = "iDType", value = "身份证类型", paramType = "query"),
+            @ApiImplicitParam(name = "idNo", value = "身份证编号", paramType = "query"),
+            @ApiImplicitParam(name = "name", value = "人脸名称", paramType = "query"),
+            @ApiImplicitParam(name = "faceClassification", value = "人脸分类", paramType = "query"),
+            @ApiImplicitParam(name = "phone", value = "电话号码", paramType = "query"),
+            @ApiImplicitParam(name = "numberType", value = "号码类型", paramType = "query"),
+            @ApiImplicitParam(name = "imageUrl", value = "图片路径", paramType = "query"),
+            @ApiImplicitParam(name = "communityCode", value = "小区code", paramType = "query"),
+    })
+    public Result addFaceToHK(String faceGroupName, String sex, String iDType, String idNo, String name, String faceClassification, String phone, Integer numberType,@RequestBody String base64,String imageUrl,String communityCode) {
+        Result result1 = fileUploadFeign.base64(base64);
+        String img=(String)result1.getDatas();
+        QueryWrapper<PersonFaceImages> wrapper=new QueryWrapper<>();
+        PersonFaceImages person=null;
+        if (StringUtils.isNotEmpty(idNo)) {
+            wrapper.eq("idNo",idNo);
+            person = personFaceImagesService.getOne(wrapper);
+        }
+        if (person!=null){
+            personFaceImagesService.removeById(person.getId());
+            String[] ar={person.getUncode()};
+            deleteFace(ar,person.getFaceGroupIndexCode());
+        }
+        String faceGroupIndexCode = null;
+        try {
+            faceGroupIndexCode = queryFaceGroup(null, faceGroupName);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.succeed();
         } finally {
         }
-      /*  certificateType = ("".equals(certificateType) || certificateType == null) ? null : certificateType;
-        certificateNum = ("".equals(certificateNum) || certificateNum == null) ? null : certificateNum;*/
-        // 2.添加到指定人脸库
+        FaceInfo faceInfo = new FaceInfo();
         String getRootApi1 = ARTEMIS_PATH + "/api/frs/v1/face/single/addition";
         Map<String, String> path1 = new HashMap<String, String>(2) {
             {
-                put("http://", getRootApi1);//根据现场环境部署确认是http还是https
+                put("https://", getRootApi1);//根据现场环境部署确认是http还是https
             }
         };
         String contentType = "application/json";
@@ -184,19 +347,122 @@ public class HKFaceController {
         faceInfoParam.put("certificateType", iDType);
         faceInfoParam.put("certificateNum", idNo);
         Map<String, String> facePicParam = new HashMap<String, String>(1);
-        File excelFile = null;
-        String faceUrl;
-        try {
-            String originalFilename = file.getOriginalFilename();
-            String prefix = originalFilename.substring(originalFilename.lastIndexOf("."));
-            excelFile = File.createTempFile(UUID.randomUUID().toString().replaceAll("-", "").substring(0, 15), prefix);
-            file.transferTo(excelFile);
-            faceUrl = ImgCompass.convertFlieImageToBase64Byte(excelFile, 200);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return Result.failed("图片转换失败！");
+        if (StringUtils.isEmpty(base64)) {
+           /* File excelFile = null;
+            try {
+                String originalFilename = file.getOriginalFilename();
+                String prefix = originalFilename.substring(originalFilename.lastIndexOf("."));
+                excelFile = File.createTempFile(UUID.randomUUID().toString().replaceAll("-", "").substring(0, 15), prefix);
+                file.transferTo(excelFile);
+                String faceBinaryData = ImgCompass.convertFlieImageToBase64Byte(excelFile, 200);
+                facePicParam.put("faceBinaryData", faceBinaryData);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return Result.failed("图片转换失败！");
+            }*/
+        }else {
+            facePicParam.put("faceBinaryData", base64);
         }
-        facePicParam.put("faceBinaryData", faceUrl);
+        jsonBody.put("faceGroupIndexCode", faceGroupIndexCode);
+        jsonBody.put("faceInfo", faceInfoParam);
+        jsonBody.put("facePic", facePicParam);
+        String body = jsonBody.toJSONString();
+        String result = ArtemisHttpUtil.doPostStringArtemis(path1, body, null, null, contentType);
+        JSONObject jsonToken = (JSONObject) JSONObject.parse(result);
+        Map data1 = null;
+        if (jsonToken!=null) {
+            if ("0".equals(jsonToken.getString("code"))) {
+                data1 = (Map) jsonToken.get("data");
+            } else {
+                return Result.failed(null);
+            }
+        }
+        //3.插入本地的人脸库
+        PersonFaceImages personFaceImages = new PersonFaceImages();
+        personFaceImages.setCameraCompany(2);
+        personFaceImages.setUncode((String) data1.get("indexCode"));
+        personFaceImages.setCommunityCode(communityCode);
+        personFaceImages.setImgUrl(imageUrl);
+        personFaceImages.setFaceClassification(faceClassification);
+        personFaceImages.setName(name);
+        personFaceImages.setSex(saveSex);
+        personFaceImages.setPhone(phone);
+        personFaceImages.setNumberType(numberType);
+        personFaceImages.setCreateTime(new Date());
+        personFaceImages.setModifiedTime(new Date());
+        personFaceImages.setIdNo(idNo);
+        personFaceImages.setFaceDatabaseName(faceGroupName);
+        personFaceImages.setIDType(saveCertificateType);
+        personFaceImages.setFaceGroupIndexCode((String) data1.get("faceGroupIndexCode"));
+        try {
+            personFaceImagesService.save(personFaceImages);
+        } catch (Exception e) {
+            //要回滚海康添加人脸的信息
+            String[] str = new String[5];
+            str[0] = (String) data1.get("indexCode");
+            deleteFace(str, faceGroupIndexCode);
+            return Result.failed("添加失败");
+        }
+        return Result.succeed(personFaceImages);
+    }
+    @PostMapping("/blacklistControl")
+    @ApiOperation(value = "添加黑名单人脸布控", notes = "")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "sex", value = "性别", paramType = "query"),
+            @ApiImplicitParam(name = "iDType", value = "身份证类型", paramType = "query"),
+            @ApiImplicitParam(name = "idNo", value = "身份证编号", paramType = "query"),
+            @ApiImplicitParam(name = "name", value = "人脸名称", paramType = "query"),
+            @ApiImplicitParam(name = "faceClassification", value = "人脸分类", paramType = "query"),
+            @ApiImplicitParam(name = "phone", value = "电话号码", paramType = "query"),
+            @ApiImplicitParam(name = "numberType", value = "号码类型", paramType = "query"),
+            @ApiImplicitParam(name = "controlInstructions", value = "布控说明", paramType = "query")
+    })
+    public Result blacklistControl( String sex, String iDType, String idNo, String name, String faceClassification, String phone, Integer numberType,
+                                    String imageUrl,String controlInstructions) {
+        /*File toFile=null;
+        try {
+            toFile = multipartFileToFile(file);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+        }*/
+
+        String faceGroupIndexCode = queryFaceGroup(null, "布控-黑名单");
+        FaceInfo faceInfo = new FaceInfo();
+        String getRootApi1 = ARTEMIS_PATH + "/api/frs/v1/face/single/addition";
+        Map<String, String> path1 = new HashMap<String, String>(2) {
+            {
+                put("https://", getRootApi1);//根据现场环境部署确认是http还是https
+            }
+        };
+        String contentType = "application/json";
+        JSONObject jsonBody = new JSONObject();
+        String saveSex = sex;
+        String saveCertificateType = iDType;
+        Map<String, String> faceInfoParam = new HashMap<String, String>(4);
+        faceInfoParam.put("name", name);
+        if ("0".equals(sex)) {
+            sex = "UNKNOWN";
+        }
+        if ("1".equals(iDType)) {
+            iDType = "111";
+        } else {
+            iDType = "OTHER";
+        }
+        faceInfoParam.put("sex", sex);
+        faceInfoParam.put("certificateType", iDType);
+        faceInfoParam.put("certificateNum", idNo);
+        Map<String, String> facePicParam = new HashMap<String, String>(1);
+        try {
+//            String faceBinaryData = ImgCompass.convertFlieImageToBase64Byte(toFile, 200);
+            String faceBinaryData =ImgCompass.imageUrlTobase64Byte(imageUrl,200);
+            facePicParam.put("faceBinaryData", faceBinaryData);
+           /* Result upload = fileUploadFeign.base64(faceBinaryData);
+            imageUrl=(String)upload.getDatas();*/
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+        }
         jsonBody.put("faceGroupIndexCode", faceGroupIndexCode);
         jsonBody.put("faceInfo", faceInfoParam);
         jsonBody.put("facePic", facePicParam);
@@ -207,37 +473,35 @@ public class HKFaceController {
         if ("0".equals(jsonToken.getString("code"))) {
             data1 = (Map) jsonToken.get("data");
         } else {
-            return Result.failed("单个添加人脸接口出错！");
+            return null;
         }
         //3.插入本地的人脸库
         PersonFaceImages personFaceImages = new PersonFaceImages();
         personFaceImages.setCameraCompany(2);
         personFaceImages.setUncode((String) data1.get("indexCode"));
-        personFaceImages.setCommunityCode("");
-        personFaceImages.setImgUrl(url);
+        personFaceImages.setImgUrl(imageUrl);
         personFaceImages.setFaceClassification(faceClassification);
         personFaceImages.setName(name);
         personFaceImages.setSex(saveSex);
         personFaceImages.setPhone(phone);
         personFaceImages.setNumberType(numberType);
-        LocalDateTime localDateTime = LocalDateTime.now();
-        personFaceImages.setCreateTime(localDateTime);
-        personFaceImages.setModifiedTime(localDateTime);
+        personFaceImages.setCreateTime(new Date());
+        personFaceImages.setModifiedTime(new Date());
         personFaceImages.setIdNo(idNo);
-        personFaceImages.setFaceGroupName(faceGroupName);
+        personFaceImages.setFaceDatabaseName("布控-黑名单");
         personFaceImages.setIDType(saveCertificateType);
+        personFaceImages.setControlInstructions(controlInstructions);
         personFaceImages.setFaceGroupIndexCode((String) data1.get("faceGroupIndexCode"));
         try {
             personFaceImagesService.save(personFaceImages);
         } catch (Exception e) {
             //要回滚海康添加人脸的信息
             String[] str = {};
-            str[0] = faceInfo.getIndexCode();
+            str[0] = personFaceImages.getUncode();
             deleteFace(str, faceGroupIndexCode);
         }
-        return Result.succeed(faceInfo, "成功!");
+        return Result.succeed("新增布控成功");
     }
-
     @RequestMapping(value = "/addSingleFace", method = RequestMethod.POST)
     @ApiOperation(value = "单个添加人脸到海康人脸库", notes = "")
     public Result addSingleFace(FaceInfo faceInfo) {
@@ -245,7 +509,7 @@ public class HKFaceController {
         String getRootApi = ARTEMIS_PATH + "/api/frs/v1/face/single/addition";
         Map<String, String> path = new HashMap<String, String>(2) {
             {
-                put("http://", getRootApi);//根据现场环境部署确认是http还是https
+                put("https://", getRootApi);//根据现场环境部署确认是http还是https
             }
         };
         /**
@@ -305,12 +569,10 @@ public class HKFaceController {
         }
         return Result.succeed(jsonToken);
     }
-
     @PostMapping("/updateFace")
-    @ApiOperation("修改人脸")
+    @ApiOperation("修改黑名单布控人脸")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id",value = "id",paramType = "query"),
-            @ApiImplicitParam(name = "faceGroupName",value = "人脸库名",paramType = "query"),
             @ApiImplicitParam(name = "sex",value = "性别",paramType = "query"),
             @ApiImplicitParam(name = "iDType",value = "身份证类型",paramType = "query"),
             @ApiImplicitParam(name = "idNo",value = "身份证号",paramType = "query"),
@@ -319,28 +581,21 @@ public class HKFaceController {
             @ApiImplicitParam(name = "phone",value = "电话号码",paramType = "query"),
             @ApiImplicitParam(name = "numberType",value = "号码类型",paramType = "query"),
             @ApiImplicitParam(name = "uncode",value = "人脸唯一标识",paramType = "query"),
-            @ApiImplicitParam(name = "faceGroupIndexCode",value = "人脸库唯一标识",paramType = "query")
+            @ApiImplicitParam(name = "faceGroupIndexCode",value = "人脸库唯一标识",paramType = "query"),
+            @ApiImplicitParam(name = "controlInstructions",value = "布控说明",paramType = "query")
     })
-    public Result updateFace(long id,String faceGroupName, String sex, String iDType, String idNo, String name, String faceClassification, String phone, Integer numberType,String uncode,String faceGroupIndexCode,MultipartFile file) {
-        String groupIndexCode = queryFaceGroup(null, faceGroupName);
+    public Result updateFace(Long id, String sex, String iDType, String idNo, String name, String faceClassification, String phone,
+                             Integer numberType,String uncode,String faceGroupIndexCode,String imgUrl,String controlInstructions) {
+//        String groupIndexCode = queryFaceGroup(null, faceGroupName);
         String[] arr = new String[3];
         arr[0] = uncode;
         deleteFace(arr, faceGroupIndexCode);
         FaceInfo faceInfo = new FaceInfo();
-        String url = "";
-        try {
-            url = UploadUtil.upload(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-        }
-        /*iDType = ("".equals(iDType) || iDType == null) ? null : iDType;
-        idNo = ("".equals(idNo) || idNo == null) ? null : idNo;*/
         // 2.添加到指定人脸库
         String getRootApi1 = ARTEMIS_PATH + "/api/frs/v1/face/single/addition";
         Map<String, String> path1 = new HashMap<String, String>(2) {
             {
-                put("http://", getRootApi1);//根据现场环境部署确认是http还是https
+                put("https://", getRootApi1);//根据现场环境部署确认是http还是https
             }
         };
         String contentType = "application/json";
@@ -364,17 +619,17 @@ public class HKFaceController {
         File excelFile = null;
         String faceUrl;
         try {
-            String originalFilename = file.getOriginalFilename();
+           /* String originalFilename = file.getOriginalFilename();
             String prefix = originalFilename.substring(originalFilename.lastIndexOf("."));
             excelFile = File.createTempFile(UUID.randomUUID().toString().replaceAll("-", "").substring(0, 15), prefix);
-            file.transferTo(excelFile);
-            faceUrl = ImgCompass.convertFlieImageToBase64Byte(excelFile, 200);
-        } catch (IOException e) {
+            file.transferTo(excelFile);*/
+            faceUrl =ImgCompass.imageUrlTobase64Byte(imgUrl,200);
+        } catch (Exception e) {
             e.printStackTrace();
             return Result.failed("图片转换失败！");
         }
         facePicParam.put("faceBinaryData", faceUrl);
-        jsonBody.put("faceGroupIndexCode", groupIndexCode);
+        jsonBody.put("faceGroupIndexCode", faceGroupIndexCode);
         jsonBody.put("faceInfo", faceInfoParam);
         jsonBody.put("facePic", facePicParam);
         String body = jsonBody.toJSONString();
@@ -386,25 +641,31 @@ public class HKFaceController {
         } else {
             return Result.failed("单个添加人脸接口出错！");
         }
+        QueryWrapper<SnapFaceDataHik> wrapper=new QueryWrapper<>();
+        wrapper.eq("uncode",uncode);
+        List<SnapFaceDataHik> list = snapFaceDataHikService.list(wrapper);
+        for (SnapFaceDataHik snapFaceDataHik : list) {
+            snapFaceDataHik.setUncode((String) data1.get("indexCode"));
+            snapFaceDataHikService.saveOrUpdate(snapFaceDataHik);
+        }
         //3.插入本地的人脸库
         PersonFaceImages personFaceImages = new PersonFaceImages();
         personFaceImages.setId(id);
         personFaceImages.setCameraCompany(2);
         personFaceImages.setUncode((String) data1.get("indexCode"));
         personFaceImages.setCommunityCode("");
-        personFaceImages.setImgUrl(url);
+        personFaceImages.setImgUrl(imgUrl);
         personFaceImages.setFaceClassification(faceClassification);
         personFaceImages.setName(name);
         personFaceImages.setSex(saveSex);
         personFaceImages.setPhone(phone);
         personFaceImages.setNumberType(numberType);
-        LocalDateTime localDateTime = LocalDateTime.now();
-        personFaceImages.setCreateTime(localDateTime);
-        personFaceImages.setModifiedTime(localDateTime);
+        personFaceImages.setCreateTime(new Date());
+        personFaceImages.setModifiedTime(new Date());
         personFaceImages.setIdNo(idNo);
-        personFaceImages.setFaceGroupName(faceGroupName);
         personFaceImages.setIDType(saveIdType);
-        personFaceImages.setFaceGroupIndexCode((String) data1.get("faceGroupIndexCode"));
+        personFaceImages.setControlInstructions(controlInstructions);
+        personFaceImages.setFaceGroupIndexCode(faceGroupIndexCode);
         try {
             personFaceImagesService.saveOrUpdate(personFaceImages);
         } catch (Exception e) {
@@ -476,7 +737,7 @@ public class HKFaceController {
 
 
     }
-    @RequestMapping("/keyPersonRecognitionCallBack")
+    @RequestMapping("/keyPersonRecognitionCallBac")
     @ApiOperation(value = "重点人识别的回调函数", notes = "")
     public Result keyPersonRecognitionCallBack(HttpServletRequest request, HttpServletResponse response, @RequestBody Map map) throws ParseException {
         config();
@@ -487,7 +748,6 @@ public class HKFaceController {
         Map data = (Map) events.get(0).get("data");
         Map faceRecognitionResult = (Map) data.get("faceRecognitionResult");
         List<Map> faceMatch = (List<Map>) faceRecognitionResult.get("faceMatch");
-
         //相似度
         List<Map> resInfo = (List<Map>) data.get("resInfo");
         String deviceCode = resInfo.get(0).get("indexCode").toString();
@@ -586,7 +846,7 @@ public class HKFaceController {
         String getRootApi = ARTEMIS_PATH + "/api/resource/v1/cameras/indexCode";
         Map<String, String> path = new HashMap<String, String>(2) {
             {
-                put("http://", getRootApi);//根据现场环境部署确认是http还是https
+                put("https://", getRootApi);//根据现场环境部署确认是http还是https
             }
         };
         String contentType = "application/json";
@@ -690,16 +950,42 @@ public class HKFaceController {
         stranger.setSerialNumber(indexCode);
         strangerService.save(stranger);
         snapFaceDataHikService.save(snapFaceDataHik);
-        personFaceImages.setFaceGroupName("陌生人" + "-" + communityName);
+        personFaceImages.setFaceDatabaseName("陌生人" + "-" + communityName);
         personFaceImages.setImgUrl(faceUrl);
         personFaceImages.setUncode(code);
         personFaceImages.setCameraCompany(2);
         personFaceImages.setName(s);
         personFaceImages.setCommunityCode(communityCode);
-        personFaceImages.setCreateTime(LocalDateTime.now());
-        personFaceImages.setModifiedTime(LocalDateTime.now());
+        personFaceImages.setCreateTime(new Date());
+        personFaceImages.setModifiedTime(new Date());
         personFaceImagesService.save(personFaceImages);
         return Result.succeed(faceUrl);
+    }
+    @PostMapping("/deleteHkFace")
+    public Result deleteHkFace(String idNo){
+        QueryWrapper<PersonFaceImages> wrapper=new QueryWrapper<>();
+        if (StringUtils.isNotBlank(idNo)) {
+            wrapper.eq("idNo",idNo);
+        }
+        PersonFaceImages personFaceImages = personFaceImagesService.getOne(wrapper);
+        String uncode="";
+        String faceGroupIndexCode ="";
+        if (personFaceImages!=null){
+           uncode = personFaceImages.getUncode();
+           faceGroupIndexCode = personFaceImages.getFaceGroupIndexCode();
+        }
+        String[] arr=new String[5];
+        arr[0]=uncode;
+        boolean remove = personFaceImagesService.remove(wrapper);
+        deleteFace(arr, faceGroupIndexCode);
+//        if (result){
+//            Result res = deleteFace(arr, faceGroupIndexCode);
+//            Integer resp_code = res.getResp_code();
+//            if (resp_code==1){
+//                return Result.succeed("删除成功");
+//            }
+//        }
+        return Result.succeed("删除成功");
     }
     @RequestMapping("/deleteFace")
     @ApiOperation(value = "按条件删除人脸", notes = "")
@@ -711,7 +997,7 @@ public class HKFaceController {
         String getRootApi = ARTEMIS_PATH + "/api/frs/v1/face/deletion";
         Map<String, String> path = new HashMap<String, String>(2) {
             {
-                put("http://", getRootApi);//根据现场环境部署确认是http还是https
+                put("https://", getRootApi);//根据现场环境部署确认是http还是https
             }
         };
         /**
@@ -739,11 +1025,13 @@ public class HKFaceController {
 
         String result = ArtemisHttpUtil.doPostStringArtemis(path, body, null, null, contentType);
         JSONObject jsonToken = (JSONObject) JSONObject.parse(result);
-        if ("0".equals(jsonToken.getString("code"))) {
-
-            JSONArray array = JSONArray.parseArray(jsonToken.getString("data"));
+        if (jsonToken!=null){
+            if ("0".equals(jsonToken.getString("code"))) {
+                return Result.succeed();
+//            JSONArray array = JSONArray.parseArray(jsonToken.getString("data"));
+            }
         }
-        return Result.succeed("成功！");
+        return Result.failed();
 
 
     }
@@ -767,7 +1055,7 @@ public class HKFaceController {
         String getRootApi = ARTEMIS_PATH + "/api/frs/v1/face";
         Map<String, String> path = new HashMap<String, String>(2) {
             {
-                put("http://", getRootApi);//根据现场环境部署确认是http还是https
+                put("https://", getRootApi);//根据现场环境部署确认是http还是https
             }
         };
         String contentType = "application/json";
@@ -834,7 +1122,7 @@ public class HKFaceController {
         String getRootApi = ARTEMIS_PATH + "/api/frs/v1/face/group/single/update";
         Map<String, String> path = new HashMap<String, String>(2) {
             {
-                put("http://", getRootApi);//根据现场环境部署确认是http还是https
+                put("https://", getRootApi);//根据现场环境部署确认是http还是https
             }
         };
         String contentType = "application/json";
@@ -940,64 +1228,6 @@ public class HKFaceController {
         return Result.succeed(data);
     }
 
-    @RequestMapping("/pictureOneToManySearch")
-    @ApiOperation(value = "人脸分组1VN检索", notes = "minSimilarity required 指定检索的最小相似度 ，searchNum 指定所有识别资源搜索张数的总和的最大值 ")
-    public Result pictureOneToManySearch(FaceInfo faceInfo, String minSimilarity, String searchNum, int pageSize, int pageNo) {
-        config();
-        if (minSimilarity == null || "".equals(minSimilarity)) {
-            minSimilarity = "75";
-        }
-        String getRootApi = ARTEMIS_PATH + "/api/frs/v1/application/oneToMany";
-        Map<String, String> path = new HashMap<String, String>(2) {
-            {
-                put("http://", getRootApi);//根据现场环境部署确认是http还是https
-            }
-        };
-        String contentType = "application/json";
-        JSONObject jsonBody = new JSONObject();
-        jsonBody.put("pageNo", pageNo);
-        jsonBody.put("pageSize", pageSize);
-        jsonBody.put("searchNum", searchNum);
-        jsonBody.put("minSimilarity", minSimilarity);
-        // jsonBody.put("facePicUrl", faceInfo.getFaceUrl());
-        String faceUrl = faceInfo.getFaceUrl();
-        if (faceUrl == null || "".equals(faceUrl)) {
-            return Result.failed("faceUrl为空!");
-        }
-        String faceGroupName = faceInfo.getFaceGroupName();
-        String faceGroupIndexCode = queryFaceGroup(null, faceGroupName);
-
-        byte[] bytes;
-        String faceUrl1 = null;
-        try {
-            bytes = ImgCompass.convertImageToByteArray(faceUrl, 200);
-            faceUrl1 = Base64Util.encode(bytes);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        jsonBody.put("facePicBinaryData", faceUrl1);
-        jsonBody.put("name", faceInfo.getName());
-        jsonBody.put("sex", faceInfo.getSex());
-        jsonBody.put("certificateType", faceInfo.getCertificateType());
-        jsonBody.put("certificateNum", faceInfo.getCertificateNum());
-        List<String> faceGroupIndexCodes = new ArrayList<String>();
-        // faceGroupIndexCodes.add("5dc82633-a4cb-4107-b55e-f21bbdf952f5");
-        faceGroupIndexCodes.add(faceGroupIndexCode);
-        jsonBody.put("faceGroupIndexCodes", faceGroupIndexCodes);
-        String body = jsonBody.toJSONString();
-        String result = ArtemisHttpUtil.doPostStringArtemis(path, body, null, null, contentType);
-        JSONObject jsonToken = (JSONObject) JSONObject.parse(result);
-        List<Map> list = new ArrayList<>();
-        if ("0".equals(jsonToken.getString("code"))) {
-            Map data = (Map) jsonToken.get("data");
-            list = (List<Map>) data.get("list");
-
-            System.out.println("----------" + jsonToken.getString("data"));
-        }
-        return Result.succeed(list);
-    }
-
-
     @RequestMapping("/downloadPicture")
     @ApiOperation(value = "图片下载", notes = "url 图片地址  ")
     public String downloadPicture(String url) {
@@ -1005,7 +1235,7 @@ public class HKFaceController {
         String getRootApi = ARTEMIS_PATH + "/api/frs/v1/application/picture";
         Map<String, String> path = new HashMap<String, String>(2) {
             {
-                put("http://", getRootApi);//根据现场环境部署确认是http还是https
+                put("https://", getRootApi);//根据现场环境部署确认是http还是https
             }
         };
         String contentType = "application/json";
@@ -1070,7 +1300,7 @@ public class HKFaceController {
         String getRootApi = ARTEMIS_PATH + "/api/frs/v1/face/group";
         Map<String, String> path = new HashMap<String, String>(2) {
             {
-                put("http://", getRootApi);//根据现场环境部署确认是http还是https
+                put("https://", getRootApi);//根据现场环境部署确认是http还是https
             }
         };
         String contentType = "application/json";
@@ -1087,13 +1317,16 @@ public class HKFaceController {
         jsonBody.put("indexCodes", arr);
         jsonBody.put("name", name);
         String body = jsonBody.toJSONString();
-        String result = ArtemisHttpUtil.doPostStringArtemis(path, body, null, null, contentType);
+        String result = null;
+        result = ArtemisHttpUtil.doPostStringArtemis(path, body, null, null, contentType);
         JSONObject jsonToken = (JSONObject) JSONObject.parse(result);
-        List<Map> list = new ArrayList<>();
-        if ("0".equals(jsonToken.getString("code"))) {
-            list = (List) jsonToken.get("data");
-            if (list != null && list.size() > 0) {
-                faceGroupIndexCode = list.get(0).get("indexCode").toString();
+        if (jsonToken!=null) {
+            List<Map> list = new ArrayList<>();
+            if ("0".equals(jsonToken.getString("code"))) {
+                list = (List) jsonToken.get("data");
+                if (list != null && list.size() > 0) {
+                    faceGroupIndexCode = list.get(0).get("indexCode").toString();
+                }
             }
         }
         return faceGroupIndexCode;
@@ -1154,6 +1387,35 @@ public class HKFaceController {
         }
         return Result.succeed("成功");
     }
+    public static File multipartFileToFile(MultipartFile file) throws Exception {
+
+        File toFile = null;
+        if (file.equals("") || file.getSize() <= 0) {
+            file = null;
+        } else {
+            InputStream ins = null;
+            ins = file.getInputStream();
+            toFile = new File(file.getOriginalFilename());
+            inputStreamToFile(ins, toFile);
+            ins.close();
+        }
+        return toFile;
+    }
+    private static void inputStreamToFile(InputStream ins, File file) {
+        try {
+            OutputStream os = new FileOutputStream(file);
+            int bytesRead = 0;
+            byte[] buffer = new byte[8192];
+            while ((bytesRead = ins.read(buffer, 0, 8192)) != -1) {
+                os.write(buffer, 0, bytesRead);
+            }
+            os.close();
+            ins.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }
 

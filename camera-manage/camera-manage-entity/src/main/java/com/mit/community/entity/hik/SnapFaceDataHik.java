@@ -91,7 +91,6 @@ public class SnapFaceDataHik implements Serializable {
     @TableField("emMouth")
     private Integer emMouth;
 
-
     @ApiModelProperty(value = "胡子状态, 0:未知,1:未识别,2没有胡子,3有胡子")
     @TableField("emBeard")
     private Integer emBeard;
@@ -148,6 +147,11 @@ public class SnapFaceDataHik implements Serializable {
 
     @TableField("snapshot_site")
     private String snapshotSite;
+
+    @TableField("idNo")
+    private String idNo;
+    @TableField("similarity")
+    private Integer similarity;
 
     @TableField(exist = false)
     private String place;

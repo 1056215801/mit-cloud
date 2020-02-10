@@ -8,14 +8,14 @@
         <result property="strangerNumber" column="strangerNumber" javaType="INTEGER" jdbcType="INTEGER"/>
     </resultMap>
     <resultMap id="realTimeMap" type="com.mit.community.entity.hik.Vo.RealTimeVo">
-        <result property="installationLocation" column="installation_location" javaType="String" jdbcType="VARCHAR"/>
+        <result property="deviceName" column="device_name" javaType="String" jdbcType="VARCHAR"/>
         <result property="shootTime" column="shoot_time" javaType="Date"
                 jdbcType="DATE"/>
         <result property="snapNumber" column="snapNumber" javaType="INTEGER" jdbcType="INTEGER"/>
         <result property="peopleNumber" column="peopleNumber" javaType="INTEGER" jdbcType="INTEGER"/>
     </resultMap>
     <resultMap id="numberTypeMap" type="com.mit.community.entity.hik.Vo.NumberType">
-        <result property="faceDatabaseName" column="face_database_name" javaType="String" jdbcType="VARCHAR"/>
+        <result property="faceDatabaseName" column="faceDatabaseName" javaType="String" jdbcType="VARCHAR"/>
         <result property="peopleNumber" column="peopleNumber" javaType="INTEGER" jdbcType="INTEGER"/>
     </resultMap>
     <resultMap id="cameraInfoMap" type="com.mit.community.entity.hik.Vo.CameraInfoVo">
@@ -48,18 +48,27 @@
     </resultMap>
     <select id="getSnapData" resultMap="perceptionMap">
         SELECT
-        device_info.installation_location,SUM(snap.id) snapNumber,str.strangerNumber
+        COUNT(*) snapNumber,
+        (
+        SELECT
+        count(face.id) strangerNumber
         FROM
-        snap_face_data_hik snap
-        LEFT JOIN device_info ON snap.serial_number = device_info.serial_number LEFT JOIN (SELECT SUM(id) strangerNumber,serial_number FROM stranger WHERE stranger.communityCode=communityCode GROUP BY stranger.uncode) str ON snap.serial_number=str.serial_number
-        WHERE snap.communityCode IN
-        <foreach collection="communityCodes" item="code" separator="," open="(" close=")">
-            #{code}
-        </foreach> GROUP BY device_info.serial_number
+        snap_face_data_hik face
+        WHERE
+        face.face_database_name LIKE '%陌生人%' and face.serial_number in
+        <foreach collection="serialNumbers" item="serialNumber" separator="," open="(" close=")">
+            #{serialNumber}
+        </foreach>
+        ) strangerNumber
+        FROM
+        snap_face_data_hik where snap_face_data_hik.serial_number IN
+        <foreach collection="serialNumbers" item="serialNumber" separator="," open="(" close=")">
+            #{serialNumber}
+        </foreach>
     </select>
     <select id="getRealTime" resultMap="realTimeMap">
         SELECT
-        device_info.installation_location,
+        device_info.device_name,
         snap.shoot_time,
         COUNT(snap.shoot_time) snapNumber,
         COUNT(DISTINCT snap.uncode) peopleNumber
@@ -84,37 +93,47 @@
     </select>
     <select id="getNumberType" resultMap="numberTypeMap">
         SELECT
-        face_database_name,
-        COUNT(DISTINCT snap.uncode) peopleNumber,
-        DATE_FORMAT(snap.shoot_time, '%Y-%m-%d') shoot_time,
-        communityCode
+        face.faceDatabaseName,
+        COUNT(DISTINCT face.uncode) peopleNumber
         FROM
-        snap_face_data_hik snap
+        (
+        SELECT
+        SUBSTRING_INDEX(face_database_name, '-' ,- 1) faceDatabaseName,
+        snap_face_data_hik.*
+        FROM
+        snap_face_data_hik
+        ) face
         WHERE
-        DATE_FORMAT(snap.shoot_time,'%Y-%m-%d')=CURDATE() AND snap.communityCode IN
+        DATE_FORMAT(face.shoot_time,'%Y-%m-%d')=CURDATE()
+        AND snap.communityCode IN
         <foreach collection="communityCodes" item="code" separator="," open="(" close=")">
             #{code}
         </foreach>
         GROUP BY
-        snap.face_database_name
+        face.faceDatabaseName
     </select>
     <select id="getWeekNumber" resultMap="numberTypeMap">
         SELECT
-        face_database_name,
-        COUNT(DISTINCT snap.uncode) peopleNumber,
-        DATE_FORMAT(snap.shoot_time, '%Y-%m-%d') shoot_time,
-        communityCode
+        face.faceDatabaseName,
+        COUNT(DISTINCT face.uncode) peopleNumber
         FROM
-        snap_face_data_hik snap
+        (
+        SELECT
+        SUBSTRING_INDEX(face_database_name, '-' ,- 1) faceDatabaseName,
+        snap_face_data_hik.*
+        FROM
+        snap_face_data_hik
+        ) face
         WHERE
-        DATE_FORMAT(snap.shoot_time,'%Y-%m-%d')>DATE_SUB(CURDATE(), INTERVAL 1 WEEK) AND snap.communityCode IN
+        DATE_FORMAT(face.shoot_time, '%Y-%m-%d') > DATE_SUB(CURDATE(), INTERVAL 1 WEEK)
+        AND face.communityCode IN
         <foreach collection="communityCodes" item="code" separator="," open="(" close=")">
             #{code}
         </foreach>
         GROUP BY
-        snap.face_database_name
+        face.faceDatabaseName
     </select>
-       <select id="getCameraInfo" resultMap="cameraInfoMap">
+    <select id="getCameraInfo" resultMap="cameraInfoMap">
         SELECT
         snap.image_url,
         snap.shoot_time,
@@ -127,52 +146,52 @@
         WHERE
         snap.serial_number = #{serialNumber}
        </select>
-       <select id="getInformationOverview" resultMap="informationOverviewMap">
+    <select id="getInformationOverview" resultMap="informationOverviewMap">
         SELECT
-	     snapOne.entryNumber,
-	     snapTwo.leaveNumber,
-         snapThree.ordinaryNumber,
-         snapfour.specialNumber
-         FROM
-	    (
-		SELECT
-			COUNT(
-				DISTINCT snap_face_data_hik.uncode
-			) entryNumber,
-			communityCode
-		 FROM
-			snap_face_data_hik
-		WHERE
-			snap_face_data_hik.direction = 1
-	    ) snapOne
-       LEFT JOIN (
-	     SELECT
-		COUNT(
-			DISTINCT snap_face_data_hik.uncode
-		) leaveNumber,
-		communityCode
-	   FROM
-		snap_face_data_hik
-	   WHERE
-		snap_face_data_hik.direction = 2
-      ) snapTwo ON snapOne.communityCode = snapTwo.communityCode
-      LEFT JOIN (
-	   SELECT
-		COUNT(DISTINCT snap_face_data_hik.uncode) ordinaryNumber,
-       communityCode
-	    FROM
-		snap_face_data_hik
-	  WHERE snap_face_data_hik.face_database_name LIKE '%白名单%'
-      ) snapThree ON snapThree.communityCode=snapOne.communityCode LEFT JOIN (
-	    SELECT
-		COUNT(DISTINCT snap_face_data_hik.uncode) specialNumber,
-       communityCode
-	    FROM
-		snap_face_data_hik
-	   WHERE snap_face_data_hik.face_database_name NOT LIKE '%白名单%'
-      ) snapfour ON snapOne.communityCode=snapfour.communityCode WHERE snapOne.communityCode IN
+        snapOne.entryNumber,
+        snapTwo.leaveNumber,
+        snapThree.ordinaryNumber,
+        snapfour.specialNumber
+        FROM
+        (
+        SELECT
+        COUNT(
+        DISTINCT snap_face_data_hik.uncode
+        ) entryNumber,
+        communityCode
+        FROM
+        snap_face_data_hik
+        WHERE
+        snap_face_data_hik.direction = 1
+        ) snapOne
+        LEFT JOIN (
+        SELECT
+        COUNT(
+        DISTINCT snap_face_data_hik.uncode
+        ) leaveNumber,
+        communityCode
+        FROM
+        snap_face_data_hik
+        WHERE
+        snap_face_data_hik.direction = 2
+        ) snapTwo ON snapOne.communityCode = snapTwo.communityCode
+        LEFT JOIN (
+        SELECT
+        COUNT(DISTINCT snap_face_data_hik.uncode) ordinaryNumber,
+        communityCode
+        FROM
+        snap_face_data_hik
+        WHERE snap_face_data_hik.face_database_name LIKE '%白名单%'
+        ) snapThree ON snapThree.communityCode=snapOne.communityCode LEFT JOIN (
+        SELECT
+        COUNT(DISTINCT snap_face_data_hik.uncode) specialNumber,
+        communityCode
+        FROM
+        snap_face_data_hik
+        WHERE snap_face_data_hik.face_database_name NOT LIKE '%白名单%'
+        ) snapfour ON snapOne.communityCode=snapfour.communityCode WHERE snapOne.communityCode IN
         <foreach collection="communityCodes" item="code" separator="," open="(" close=")">
-        #{code}
+            #{code}
         </foreach>
     </select>
     <select id="getImageInfo" resultMap="snapImageMap">
@@ -205,22 +224,27 @@
 	snap.id = #{id}
     </select>
     <select id="getSnapImageList" resultMap="snapImageMap">
-          SELECT
-	device_info.device_name,
-	snap.shoot_time,
-	snap.id,
-	CONCAT(
-		snap.community_name,
-		'-',
-		device_info.zone_name,
-		'-',
-		snap.snapshot_site) place,
-    snap.image_url
-	FROM
-		snap_face_data_hik snap
-	LEFT JOIN device_info ON snap.serial_number = device_info.serial_number
+        SELECT
+        device_info.device_name,
+        snap.shoot_time,
+        snap.id,
+        CONCAT(
+        snap.community_name,
+        '-',
+        device_info.zone_name,
+        '-',
+        snap.snapshot_site) place,
+        snap.image_url
+        FROM
+        snap_face_data_hik snap
+        LEFT JOIN device_info ON snap.serial_number = device_info.serial_number
         <if test="ew.emptyOfWhere == false">
             ${ew.customSqlSegment}
         </if>
+    </select>
+    <select id="getSnapList" resultMap="snapImageMap">
+         SELECT * FROM(SELECT shoot_time,image_url FROM snap_face_data_hik WHERE snap_face_data_hik.serial_number=#{serialNumber}
+        UNION ALL
+        SELECT shoot_time,imageUrl image_url FROM snap_vehicle WHERE snap_vehicle.serial_number=#{serialNumber})tmp ORDER BY tmp.shoot_time DESC LIMIT 5
     </select>
 </mapper>

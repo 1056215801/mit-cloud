@@ -5,6 +5,7 @@ import com.mit.common.web.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -20,4 +21,6 @@ public interface SysDeptFeign {
 
     @GetMapping(value = "/dept/tree")
     public Result<List<DeptTree>> listDeptTrees();
+    @GetMapping("/user/info?access_token={access_token}")
+    public Result info(@PathVariable(value = "access_token") String access_token);
 }

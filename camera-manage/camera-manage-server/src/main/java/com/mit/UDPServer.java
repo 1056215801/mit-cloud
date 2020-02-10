@@ -17,7 +17,7 @@ import java.net.SocketException;
  * <p>Company: mitesofor </p>
  */
 
-@WebListener
+//@WebListener
 public class UDPServer implements ServletContextListener{
     public static final int MAX_UDP_DATA_SIZE = 4096;
     public static final int UDP_PORT = 6008;

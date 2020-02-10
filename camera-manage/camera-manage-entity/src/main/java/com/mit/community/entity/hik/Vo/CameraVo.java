@@ -27,5 +27,5 @@ public class CameraVo {
     private String playbackAddress;
 
     private String communityCode;
-    List<SnapFaceDataHik> snapFaceDataHikList;
+    List<SnapImageVo> snapFaceDataHikList;
 }

@@ -6,6 +6,7 @@ import com.mit.common.web.Result;
 import com.mit.community.feign.FileUploadFeign;
 import com.mit.community.module.device.controller.AlarmDeviceController;
 import com.mit.community.module.hik.face.controller.PlatformController;
+import com.mit.community.util.ImgCompass;
 import com.sun.jna.Pointer;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
@@ -19,7 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
-import sun.misc.BASE64Encoder;
+//import sun.misc.BASE64Encoder;
+import util.Base64Util;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -27,7 +29,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
+
+import static com.mit.community.util.ImgCompass.bytesToKB;
 
 /**
  * @Author qishengjun
@@ -48,14 +53,13 @@ public class FMSGCallBack_V31 implements HCNetSDK.FMSGCallBack_V31 {
     /*@Autowired
     private PlatformController platformController;*/
     public boolean invoke(int lCommand, HCNetSDK.NET_DVR_ALARMER pAlarmer, Pointer pAlarmInfo, int dwBufLen, Pointer pUser) {
-        System.out.println("回调函数被触发");
         AlarmDataHandle(lCommand, pAlarmer, pAlarmInfo, dwBufLen, pUser);
         return false;
     }
 
     public void AlarmDataHandle(int lCommand, HCNetSDK.NET_DVR_ALARMER pAlarmer, Pointer pAlarmInfo, int dwBufLen, Pointer pUser) {
 //        DefaultTableModel alarmTableModel = ((DefaultTableModel) jTableAlarm.getModel());//获取表格模型
-        AlarmDeviceController alarmDeviceController = new AlarmDeviceController();
+//        AlarmDeviceController alarmDeviceController = new AlarmDeviceController();
         //PlatformController platformController=new PlatformController();
         String sAlarmType = new String();
         String[] newRow = new String[3];
@@ -103,27 +107,13 @@ public class FMSGCallBack_V31 implements HCNetSDK.FMSGCallBack_V31 {
                     if (strFaceSnapInfo.dwFacePicLen > 0) {
                         try {
                             small.write(strFaceSnapInfo.pBuffer1.getByteArray(0, strFaceSnapInfo.dwFacePicLen), 0, strFaceSnapInfo.dwFacePicLen);
-//                            byte[] context = Files.readAllBytes(smallFile.toPath());
-//                            String imageUrl = UploadUtil.uploadWithByte(context);
                             FileInputStream inputFile = new FileInputStream(smallFile);
-                            byte[] buffer = new byte[(int) file.length()];
+                            byte[] buffer = new byte[(int) smallFile.length()];
                             inputFile.read(buffer);
                             inputFile.close();
-                            String base64Url = new BASE64Encoder().encode(buffer);
-                          /*  String url="http://192.168.1.46:8765/cloud-service/hkHardware/getImageUrl";
-                            System.out.println("serialNumber"+serialNumber);
-                            NameValuePair[] data = {new NameValuePair("base64Url", base64Url),
-                                    new NameValuePair("serialNumber", serialNumber)
-                            };
-                            HttpClient httpClient = new HttpClient();
-                            httpClient.getParams().setBooleanParameter("http.protocol.expect-continue", false);
-                            httpClient.getParams().setContentCharset("utf-8");
-                            PostMethod postMethod = new PostMethod(url);
-                            postMethod.addRequestHeader("Connection", "close");
-                            postMethod.setRequestBody(data);
-                            httpClient.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
-                            int status = httpClient.executeMethod(postMethod);*/
-                            platformController.getImageUrl(base64Url, serialNumber);
+                            String base64Url =Base64Util.encode(buffer);
+                            String toBase64Byte = ImgCompass.convertFlieImageToBase64Byte(smallFile, 200);
+                            platformController.getImageUrl(base64Url, serialNumber,toBase64Byte);
                             small.close();
                         } catch (IOException ex) {
                         }
@@ -191,13 +181,14 @@ public class FMSGCallBack_V31 implements HCNetSDK.FMSGCallBack_V31 {
                 }
                 String imageUrl = "";
                 String base64Url="";
+                String toBase64Byte="";
+                String aByte ="";
                 for (int i = 0; i < struEventISAPI.byPicturesNumber; i++) {
                     HCNetSDK.NET_DVR_ALARM_ISAPI_PICDATA struPicData = new HCNetSDK.NET_DVR_ALARM_ISAPI_PICDATA();
                     struPicData.write();
                     Pointer pPicData = struPicData.getPointer();
                     pPicData.write(0, struEventISAPI.pPicPackData.getByteArray(i * struPicData.size(), struPicData.size()), 0, struPicData.size());
                     struPicData.read();
-
                     FileOutputStream fout;
                     try {
                         String filename =".\\pic\\" + new String(pAlarmer.sDeviceIP).trim() + curTime +
@@ -216,13 +207,25 @@ public class FMSGCallBack_V31 implements HCNetSDK.FMSGCallBack_V31 {
                         buffers.get(bytes);
                         fout.write(bytes);
                         if (i == 0) {
-//                            byte[] context = Files.readAllBytes(file.toPath());
-//                            imageUrl = UploadUtil.uploadWithByte(context);
                             FileInputStream inputFile = new FileInputStream(file);
                             byte[] buffer = new byte[(int) file.length()];
                             inputFile.read(buffer);
                             inputFile.close();
-                            base64Url = new BASE64Encoder().encode(buffer);
+                            base64Url =Base64Util.encode(buffer);
+                            aByte = ImgCompass.convertFlieImageToBase64(file, 200);
+                            //计算base64图片的字节数(单位:字节)
+                            Integer size = ImgCompass.imageSize(aByte);
+                            System.out.println("字节 = "+size);
+                            //把字节转换单位为kb或mb
+                            float size2 = bytesToKB(size);
+                            if (size2>200||size2<10){
+                                aByte = ImgCompass.convertFlieImageToBase64Byte(file, 200);
+                            }
+                            Integer size3 = ImgCompass.imageSize(aByte);
+                            System.out.println("字节 = "+size);
+                            //把字节转换单位为kb或mb
+                            float size4 = bytesToKB(size3);
+                            System.out.println("压缩或者扩大的图片字节长度 = "+size4);
                         }
                         System.out.println("打印imageUrl=" + imageUrl);
                         fout.close();
@@ -237,27 +240,8 @@ public class FMSGCallBack_V31 implements HCNetSDK.FMSGCallBack_V31 {
                 try {
                     File file = new File(jsonfilename);
                     String input = FileUtils.readFileToString(file, "UTF-8");
-                   /* NameValuePair[] data = {
-                            new NameValuePair("json", input),
-                            new NameValuePair("base64Url", base64Url)
-                    };
-                    HttpClient httpClient = new HttpClient();
-                    httpClient.getParams().setBooleanParameter("http.protocol.expect-continue", false);
-                    httpClient.getParams().setContentCharset("utf-8");
-                    PostMethod postMethod = new PostMethod("http://192.168.1.46:8765/cloud-service/platform/getJsonInfo");
-                    postMethod.addRequestHeader("Connection", "close");
-                    postMethod.setRequestBody(data);
-                    httpClient.getParams().setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
-                    int status = httpClient.executeMethod(postMethod);
-                    JSONObject jsonObject = JSONObject.fromObject(input);
-                    if (jsonObject!=null){
-                        JSONArray captureResult = jsonObject.getJSONArray("CaptureResult");
-                        String deviceID = (String)jsonObject.get("deviceID");
+                        platformController.getJsonInfo(input, aByte,serialNumber);
 
-                        }*/
-//                    fileUploadFeign.base64(base64Url);
-                    platformController.getJsonInfo(input, base64Url);
-                    System.out.println();
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {

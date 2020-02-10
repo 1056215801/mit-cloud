@@ -115,4 +115,16 @@ public class DeviceInfo implements Serializable {
     @ApiModelProperty("是否支持wifi探针")
     @TableField("wifi_probe")
     private Integer wifiProbe;
+
+    @ApiModelProperty("nvr序列号编码")
+    @TableField("nvr_serial_number")
+    private String nvrSerialNumber;
+
+    @ApiModelProperty("摄像头账号")
+    @TableField("username")
+    private String username;
+
+    @ApiModelProperty("摄像头密码")
+    @TableField("password")
+    private String password;
 }

@@ -2,11 +2,15 @@ package com.mit.community.feign;
 
 import com.mit.common.web.Result;
 import com.mit.community.entity.ClusterCommunity;
+import com.mit.community.entity.hik.Gate;
+import com.mit.community.entity.hik.HouseHold;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 /**
  * @Author qishengjun
@@ -27,4 +31,9 @@ public interface CommunityFeign {
 
     @PostMapping("/api/web/communitywanli/personBaseInfo/getZonelist")
     public Result getZonelist(@RequestParam(value = "communityCode")String communityCode);
+
+    @PostMapping("/api/web/communitywanli/gateController/getByCommunityList")
+    public List<Gate> getGateList(@RequestParam(value = "communityCodeList")String communityCodeList);
+    @PostMapping("/api/web/communitywanli/houseHoldController/getHouseHoldInfoByCardNum")
+    public Result getHouseHoldInfoByCardNum(@RequestParam(value = "cardNum") String cardNum);
 }

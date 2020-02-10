@@ -33,7 +33,7 @@ public class SnapVehicleService extends ServiceImpl<SnapVehicleMapper, SnapVehic
             String[] split = communityCodes.split(",");
             SimpleDateFormat format=new SimpleDateFormat("yy-mm-dd hh:mm:ss");
             List<String> list = Arrays.asList(split);
-            Page<SnapVehicle> page=new Page<>(pageSize,pageNum);
+            Page<SnapVehicle> page=new Page<>(pageNum,pageSize);
             QueryWrapper<SnapVehicle> wrapper=new QueryWrapper<>();
             if (StringUtils.isNotEmpty(startTime)) {
                 Date start = format.parse(startTime);

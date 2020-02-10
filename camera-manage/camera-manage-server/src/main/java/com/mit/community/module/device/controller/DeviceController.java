@@ -73,6 +73,22 @@ public class DeviceController {
     private SysDeptFeign sysDeptFeign;
     @Autowired
     private TranscodeService transcodeService;
+
+    @PostMapping("/getList")
+    @ApiOperation("获取摄像机列表")
+    public Result getList(Integer deviceType){
+        QueryWrapper<DeviceInfo> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq("device_type",deviceType);
+        List<DeviceInfo> list = deviceInfoService.list(queryWrapper);
+        return Result.succeed(list);
+    }
+    @PostMapping("/getdevice")
+    public DeviceInfo getDevice(String serialNumber){
+        QueryWrapper<DeviceInfo> wrapper=new QueryWrapper<>();
+        wrapper.eq("serial_number",serialNumber);
+        DeviceInfo one = deviceInfoService.getOne(wrapper);
+        return one;
+    }
     @PostMapping("/addDevice")
     @ApiOperation("添加设备")
     public Result addDevice(DeviceInfoVo deviceInfoVo){
@@ -136,8 +152,7 @@ public class DeviceController {
             return Result.failed("删除失败");
         }
 
-    }
-    @PostMapping("/getDeviceList")
+    }    @PostMapping("/getDeviceList")
     @ApiOperation("获取设备列表")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "communityCodes",value = "小区code集合",dataType = "String",paramType = "query"),
@@ -177,7 +192,8 @@ public class DeviceController {
           CameraVo cameraVo=new CameraVo();
           QueryWrapper<SnapFaceDataHik> wrapper=new QueryWrapper<>();
           wrapper.eq("serial_number",serialNumber);
-          List<SnapFaceDataHik> snapFaceDataHikList = snapFaceDataHikService.list(wrapper);
+//          List<SnapFaceDataHik> snapFaceDataHikList = snapFaceDataHikService.list(wrapper);
+          List<SnapImageVo> snapFaceDataHikList=snapFaceDataHikService.getSnapList(serialNumber);
           QueryWrapper<DeviceInfo> queryWrapper=new QueryWrapper<>();
           queryWrapper.eq("serial_number",serialNumber);
           DeviceInfo deviceInfo = deviceInfoService.getOne(queryWrapper);
@@ -208,10 +224,14 @@ public class DeviceController {
       @PostMapping("/getDeviceTotal")
       @ApiOperation("统计设备数量")
       public List<EquipmentStatisticsVo> getDeviceTotal(@RequestParam("communityCodeList") List<String> communityCodeList){
-        List<EquipmentStatisticsVo> equipmentStatisticsVoList=deviceInfoService.getDeviceTotal(communityCodeList);
+          List<EquipmentStatisticsVo> equipmentStatisticsVoList=new ArrayList<>();
+          if (communityCodeList.size()==0) {
+              return equipmentStatisticsVoList;
+          }
+          equipmentStatisticsVoList=deviceInfoService.getDeviceTotal(communityCodeList);
         return equipmentStatisticsVoList;
       }
-       @PostMapping("/importExcel")
+       @RequestMapping("/importExcel")
        @ApiOperation("Excel数据导入")
        @Transactional(rollbackFor = Exception.class)
        public Result importExcel(@RequestParam("file") MultipartFile file){
@@ -235,7 +255,7 @@ public class DeviceController {
                // sheet.getRow(0)
                Row sheetRow = sheet.getRow(0);
                Cell cell1 = sheetRow.getCell(1);
-               String[] strArray={"*小区名称","*分区名称","*设备名称","*设备编号","*设备类型","*设备序列号","*IP地址","*设备位置","经纬度","*进/出","*视频分辨率","*是否支持WIFI探针","播放地址"};
+               String[] strArray={"*小区名称","*分区名称","*设备名称","*设备编号","*设备类型","*设备序列号","*IP地址","*设备位置","经纬度","*进/出","*视频分辨率","*是否支持WIFI探针","播放地址","NVR编号","管理账号","管理密码"};
                List<String> list = Arrays.asList(strArray);
                for (int i = 0; i < list.size(); i++) {
                    if (!list.get(i).equalsIgnoreCase(sheetRow.getCell(i+1).getStringCellValue())){
@@ -257,8 +277,8 @@ public class DeviceController {
                    Cell cellOne = row.getCell(1);
                    //列不为空获取数据,第一列值
                    //一级分类值
-                   for (int j = 0; j <14 ; j++) {
-                       if (j==9||j==13){
+                   for (int j = 0; j <17 ; j++) {
+                       if (j==9||j==13||j==14||j==15||j==16){
                            continue;
                        }
                        int temp = checkCell(row.getCell(j), stringBuilder, i, j);
@@ -276,7 +296,7 @@ public class DeviceController {
                    //5 row获取第二列
                    Cell cellTwo = row.getCell(2);
                    //不为空，获取第二列值
-                   String zoneName = cellTwo.getStringCellValue();
+                    String zoneName = cellTwo.getStringCellValue();
                    Result result1 = communityFeign.getZonelist(deviceInfo.getCommunityCode());
                    List<Zone> zoneList=(List<Zone>)result1.getDatas();
                    String jsonstr = JSON.toJSONString(zoneList);
@@ -315,7 +335,7 @@ public class DeviceController {
                    String installationLocation = cell8.getStringCellValue();
                    deviceInfo.setInstallationLocation(installationLocation);
                    Cell cell9 = row.getCell(9);
-                   if (cell.getCellType()==CellType.BLANK){
+                   if (cell9 != null){
                        String geographicCoordinates = cell9.getStringCellValue();
                        deviceInfo.setGeographicCoordinates(geographicCoordinates);
                    }
@@ -340,9 +360,21 @@ public class DeviceController {
                        deviceInfo.setWifiProbe(1);
                    }
                    Cell cell13 = row.getCell(13);
-                   if (cell.getCellType()==CellType.BLANK){
+                   if (cell13!=null){
                        String playbackAddress = cell13.getStringCellValue();
                        deviceInfo.setPlaybackAddress(playbackAddress);
+                   }
+                   Cell cell14 = row.getCell(14);
+                   if (cell14!=null){
+                       deviceInfo.setNvrSerialNumber(cell14.getStringCellValue());
+                   }
+                   Cell cell15 = row.getCell(15);
+                   if (cell15!=null){
+                       deviceInfo.setUsername(cell15.getStringCellValue());
+                   }
+                   Cell cell16 = row.getCell(16);
+                   if (cell16!=null){
+                       deviceInfo.setPassword(cell16.getStringCellValue());
                    }
                    deviceInfo.setDeviceState(1);
                    deviceInfo.setCreateTime(new Date());

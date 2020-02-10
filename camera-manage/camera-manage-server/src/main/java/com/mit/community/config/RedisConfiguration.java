@@ -13,7 +13,7 @@ import java.lang.reflect.Method;
  * @date 2018/11/29
  * @company mitesofor
  */
-@Configuration
+//@Configuration
 public class RedisConfiguration {
 
     @Bean

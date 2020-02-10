@@ -13,7 +13,7 @@ import java.util.List;
 @Mapper
 public interface SnapFaceDataHikMapper extends BaseMapper<SnapFaceDataHik> {
 
-    List<PerceptionVo> getSnapData(@Param("communityCodes") List<String> communityCodes);
+    PerceptionVo getSnapData(@Param("serialNumbers") List<String> serialNumbers);
 
     List<RealTimeVo> getRealTime(@Param("communityCodes") List<String> communityCodes);
 
@@ -28,4 +28,6 @@ public interface SnapFaceDataHikMapper extends BaseMapper<SnapFaceDataHik> {
     SnapImageVo getImageInfo(@Param("id")Integer id);
 
     Page<SnapImageVo> getSnapImageList(Page<SnapFaceDataHik> page, @Param("ew")QueryWrapper<SnapFaceDataHik> wrapper);
+
+    List<SnapImageVo> getSnapList(@Param("serialNumber")String serialNumber);
 }

@@ -23,7 +23,7 @@ import java.io.Serializable;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("plateType")
+@TableName("data_dictionary")
 @ApiModel(value="PlateType对象", description="")
 public class DataDictionary implements Serializable {
 

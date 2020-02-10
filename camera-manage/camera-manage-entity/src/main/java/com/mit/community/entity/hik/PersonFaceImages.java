@@ -82,16 +82,17 @@ public class PersonFaceImages implements Serializable {
     @ApiModelProperty(value = "创建时间")
     @TableField("create_time")
     @JsonFormat(locale = "zh", timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createTime;
+    private Date createTime;
 
     @ApiModelProperty(value = "修改时间")
     @TableField("modified_time")
     @JsonFormat(locale = "zh", timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime modifiedTime;
+    private Date modifiedTime;
 
-    @TableField("faceGroupName")
-    private String faceGroupName;
-
+    @TableField("face_database_name")
+    private String faceDatabaseName;
+    @TableField("controlInstructions")
+    private String controlInstructions;
     @TableField("phone")
     private String phone;
 

@@ -3,8 +3,11 @@ package com.mit.community.service.com.mit.community.service.hik;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mit.community.entity.hik.PersonFaceImages;
+import com.mit.community.entity.hik.Vo.FaceComparsionVo;
 import com.mit.community.mapper.PersonFaceImagesMapper;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @Author qishengjun
@@ -14,6 +17,9 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class PersonFaceImagesService extends ServiceImpl<PersonFaceImagesMapper,PersonFaceImages> {
+    public List<FaceComparsionVo> getFaceComparison(String name) {
+        return baseMapper.getFaceComparison(name);
+    }
 
    /* public void save(PersonFaceImages personFaceImages) {
 

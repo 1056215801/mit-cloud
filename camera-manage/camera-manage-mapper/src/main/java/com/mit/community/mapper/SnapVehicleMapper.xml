@@ -14,13 +14,13 @@
         <result property="place" column="place" javaType="String" jdbcType="VARCHAR"/>
         <result property="shootTime" column="shoot_time" javaType="Date"
                 jdbcType="TIMESTAMP"/>
-        <result property="imageUrl" column="image_url" javaType="String" jdbcType="VARCHAR"/>
+        <result property="imageUrl" column="imageUrl" javaType="String" jdbcType="VARCHAR"/>
         <result property="communityCode" column="communityCode" javaType="String" jdbcType="VARCHAR"/>
         <result property="direction" column="direction" javaType="INTEGER" jdbcType="INTEGER"/>
     </resultMap>
     <select id="selectPageList" resultMap="snapVehicleMap">
         SELECT
-        device.`id`,
+        vehicle.`id`,
         vehicle.`imageUrl`,
         vehicle.`shoot_time`,
         device.`direction`,

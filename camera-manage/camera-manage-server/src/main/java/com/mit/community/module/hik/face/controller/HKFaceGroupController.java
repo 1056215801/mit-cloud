@@ -1,8 +1,6 @@
 package com.mit.community.module.hik.face.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.mit.common.dto.LoginAppUser;
-import com.mit.common.utils.SecurityUtils;
 import com.mit.common.web.Result;
 import com.mit.community.entity.hik.FaceDatabase;
 import com.mit.community.entity.hik.FaceGroup;
@@ -27,6 +25,8 @@ public class HKFaceGroupController {
     private  ConfigInfoService configInfoService;
     @Autowired
     private FaceDatabaseService faceDatabaseService;
+    @Autowired
+    private HKRecognitionPlanController hkRecognitionPlanController;
     String  ARTEMIS_PATH = "/artemis";
    /* @ModelAttribute
     public void  config(){
@@ -42,6 +42,20 @@ public class HKFaceGroupController {
         ArtemisConfig.appKey = "26234840";// 秘钥appkey
         ArtemisConfig.appSecret = "DCQUuXxOKd0pqZ3oa20y";// 秘钥appSecret
     }
+    @PostMapping("/createFaceGroup")
+    public Result createFaceGroup(String name){
+        List<String> list=new ArrayList<>();
+        list.add(name+"-"+"白名单");
+        list.add(name+"-"+"重点关注");
+        list.add(name+"-"+"特殊关爱");
+        list.add(name+"-"+"黑名单");
+        list.add(name+"-"+"陌生人");
+        for (String s : list) {
+            addSingleFaceGroup(s,"新增人脸库");
+        }
+        hkRecognitionPlanController.updateBlackRecognitionPlan(name);
+        return Result.succeed("新增成功");
+    }
     @RequestMapping(value = "/addSingleFaceGroup", method = RequestMethod.POST)
     @ApiOperation(value = "单个添加人脸分组", notes = "")
     @ResponseBody
@@ -49,18 +63,15 @@ public class HKFaceGroupController {
         String getRootApi = ARTEMIS_PATH + "/api/frs/v1/face/group/single/addition";
         Map<String, String> path = new HashMap<String, String>(2) {
             {
-                put("http://", getRootApi);//根据现场环境部署确认是http还是https
+                put("https://", getRootApi);//根据现场环境部署确认是http还是https
             }
         };
-        LoginAppUser user = SecurityUtils.getUser();
-        String communityName = user.getCommunityName();
-        String communityCode = user.getCommunityCode();
         String contentType = "application/json";
         JSONObject jsonBody = new JSONObject();
-        jsonBody.put("name", name+"-"+"南标小区");
+        jsonBody.put("name", name);
         jsonBody.put("description",description);
         String body = jsonBody.toJSONString();
-        String result =ArtemisHttpUtil.doPostStringArtemis(path,body,null,null,"application/json",null);//     post请求application/json类型参数
+        String result = ArtemisHttpUtil.doPostStringArtemis(path,body,null,null,"application/json",null);//     post请求application/json类型参数
         JSONObject jsonToken = (JSONObject) JSONObject.parse(result);
         Map data=null;
         if ("0".equals(jsonToken.getString("code"))) {
@@ -73,7 +84,7 @@ public class HKFaceGroupController {
             faceDatabase.setCameraCompany(2);
             faceDatabase.setModifiedTime(LocalDateTime.now());
             faceDatabase.setCreateTime(LocalDateTime.now());
-            faceDatabase.setCommunityCode(communityCode);
+//            faceDatabase.setCommunityCode(communityCode);
             faceDatabaseService.save(faceDatabase);
         }
         return Result.succeed(data);
@@ -87,7 +98,7 @@ public class HKFaceGroupController {
         String getRootApi = ARTEMIS_PATH + "/api/frs/v1/face/group/batch/deletion";
         Map<String, String> path = new HashMap<String, String>(2) {
             {
-                put("http://", getRootApi);//根据现场环境部署确认是http还是https
+                put("https://", getRootApi);//根据现场环境部署确认是http还是https
             }
         };
         String contentType = "application/json";
@@ -122,12 +133,12 @@ public class HKFaceGroupController {
     @RequestMapping(value = "/queryFaceGroup", method = RequestMethod.POST)
     @ApiOperation(value = "按条件查询人脸分组", notes = "")
     @ResponseBody
-    public Result queryFaceGroup(String[] indexCodes, String name ) {
+    public List<String> queryFaceGroup(String[] indexCodes, String name ) {
 //        config();
         String getRootApi = ARTEMIS_PATH + "/api/frs/v1/face/group";
         Map<String, String> path = new HashMap<String, String>(2) {
             {
-                put("http://", getRootApi);//根据现场环境部署确认是http还是https
+                put("https://", getRootApi);//根据现场环境部署确认是http还是https
             }
         };
         String contentType = "application/json";
@@ -140,18 +151,23 @@ public class HKFaceGroupController {
 
         }
         JSONObject jsonBody = new JSONObject();
-        jsonBody.put("indexCodes", arr);
-        jsonBody.put("name", name);
+       /* jsonBody.put("indexCodes", arr);
+        jsonBody.put("name", name);*/
         String body = jsonBody.toJSONString();
         String result = ArtemisHttpUtil.doPostStringArtemis(path, body, null, null, contentType);
         JSONObject jsonObject=new JSONObject();
         JSONObject jsonToken= (JSONObject) JSONObject.parse(result);
         //net.sf.json.JSONObject jsonToken = net.sf.json.JSONObject.fromObject(result);
+        List<String> arrList=new ArrayList<>();
         List<Map> list = new ArrayList<>();
         if ("0".equals(jsonToken.getString("code"))) {
-            list = (List) jsonToken.get("data");
+            list = (List<Map>) jsonToken.get("data");
         }
-        return Result.succeed(list);
+        for (Map map : list) {
+            String indexCode=(String)map.get("indexCode");
+            arrList.add(indexCode);
+        }
+        return arrList;
 
 
 
@@ -169,7 +185,7 @@ public class HKFaceGroupController {
         String getRootApi = ARTEMIS_PATH + "/api/frs/v1/face/group/single/update";
         Map<String, String> path = new HashMap<String, String>(2) {
             {
-                put("http://", getRootApi);//根据现场环境部署确认是http还是https
+                put("https://", getRootApi);//根据现场环境部署确认是http还是https
             }
         };
         String contentType = "application/json";
@@ -201,27 +217,32 @@ public class HKFaceGroupController {
             @ApiImplicitParam(name = "pageNo",value = "当前页",required = true,paramType = "query"),
             @ApiImplicitParam(name = "pageSize",value = " 每页显示记录数",required = true,paramType = "query")
     })
-    public Result ResourceCameras (Integer pageNo,Integer pageSize){
+    public List<String>  ResourceCameras (){
         String getRootApi = ARTEMIS_PATH + "/api/resource/v1/cameras";
         Map<String, String> path = new HashMap<String, String>(2) {
             {
-                put("http://", getRootApi);//根据现场环境部署确认是http还是https
+                put("https://", getRootApi);//根据现场环境部署确认是http还是https
             }
         };
         String contentType = "application/json";
         List<String> arr=new ArrayList<>();
         JSONObject jsonBody = new JSONObject();
-        jsonBody.put("pageNo", pageNo);
-        jsonBody.put("pageSize", pageSize);
+        jsonBody.put("pageNo", 1);
+        jsonBody.put("pageSize", 1000);
         String body = jsonBody.toJSONString();
         String result = ArtemisHttpUtil.doPostStringArtemis(path, body, null, null, contentType);
         JSONObject jsonToken = (JSONObject) JSONObject.parse(result);
+        List<String> arrayList=new ArrayList<>();
         if ("0".equals(jsonToken.getString("code"))){
             Map data = (Map)jsonToken.get("data");
             List<Map> list = (List<Map>)data.get("list");
-            return Result.succeed(list);
+            for (Map map : list) {
+                String cameraIndexCode = (String)map.get("cameraIndexCode");
+                arrayList.add(cameraIndexCode);
+            }
+            return arrayList;
         }else {
-            return Result.failed("获取失败");
+            return null;
         }
     }
 

@@ -7,6 +7,7 @@ import com.mit.community.util.ArtemisHttpUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,9 +22,11 @@ import java.util.Map;
 @RequestMapping(value = "/hkRecognitionPlan")
 public class HKRecognitionPlanController {
 
+     @Autowired
+     private HKFaceGroupController hkFaceGroupController;
 
     @ApiOperation(value = "单个添加重点人员识别计划", notes = "")
-    public static String addBlackRecognitionPlan() {
+    public static String addBlackRecognitionPlan(String faceGroupIndexCode) {
 
         /**
          * STEP1：设置平台参数，根据实际情况,设置host appkey appsecret 三个参数.
@@ -66,17 +69,14 @@ public class HKRecognitionPlanController {
         List<String> cameraIndexCodes = new ArrayList<String>();
         cameraIndexCodes.add("66b5a02624f242a7989528786e741ef1");
         jsonBody.put("cameraIndexCodes", cameraIndexCodes);
-
        /* List<String> recognitionResourceIndexCodes = new ArrayList<String>();
         recognitionResourceIndexCodes.add("867c73b5-56d8-43b7-8491-6481ab23c8be");
         jsonBody.put("recognitionResourceIndexCodes", recognitionResourceIndexCodes);*/
-
         jsonBody.put("recognitionResourceType", "SUPER_BRAIN");
         jsonBody.put("description", "这是一个描述");
         jsonBody.put("threshold", 32);
-
         //时间数组，由时间对象组成
-       /* List<Map<String, Object>> timeBlockList = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> timeBlockList = new ArrayList<Map<String, Object>>();
         //时间对象，参数包扩时间范围和天数
         Map<String, Object> timeBlock = new HashMap<String, Object>();
         //时间范围参数，包括开始时间和结束时间
@@ -89,11 +89,9 @@ public class HKRecognitionPlanController {
         timeRange2.put("startTime", "12:00");
         timeRange2.put("endTime", "24:00");
         timeRanges.add(timeRange2);
-
         timeBlock.put("timeRange", timeRanges);
         timeBlock.put("dayOfWeek", "1");
         timeBlockList.add(timeBlock);
-
         //时间对象，参数包扩时间范围和天数
         Map<String, Object> timeBlock2 = new HashMap<String, Object>();
         //时间范围参数，包括开始时间和结束时间
@@ -103,13 +101,10 @@ public class HKRecognitionPlanController {
         timeRange3.put("startTime", "00:00");
         timeRange3.put("endTime", "12:00");
         timeRanges2.add(timeRange3);
-
         timeBlock2.put("timeRange", timeRanges2);
         timeBlock2.put("dayOfWeek", "2");
         timeBlockList.add(timeBlock2);
-
-        jsonBody.put("timeBlockList", timeBlockList);*/
-
+        jsonBody.put("timeBlockList", timeBlockList);
         String body = jsonBody.toJSONString();
         System.out.println(body);
         /**
@@ -236,8 +231,8 @@ public class HKRecognitionPlanController {
         /**
          * STEP1：设置平台参数，根据实际情况,设置host appkey appsecret 三个参数.
          */
-        ArtemisConfig.host = "192.168.1.230:80"; // artemis网关服务器ip端口
-        ArtemisConfig.appKey = "28818522"; // 秘钥appkey
+        ArtemisConfig.host = "192.168.1.235:4430"; // artemis网关服务器ip端口
+        ArtemisConfig.appKey = "22641784"; // 秘钥appkey
         ArtemisConfig.appSecret = "xjzwt4mcjKUAiUoIsX6n";// 秘钥appSecret
 
         /**
@@ -251,7 +246,7 @@ public class HKRecognitionPlanController {
         String getApi = ARTEMIS_PATH + "/api/frs/v1/plan/recognition/black";
         Map<String, String> path = new HashMap<String, String>(2) {
             {
-                put("http://", getApi);//根据现场环境部署确认是http还是https
+                put("https://", getApi);//根据现场环境部署确认是http还是https
             }
         };
 
@@ -287,13 +282,14 @@ public class HKRecognitionPlanController {
      单个修改重点人员识别计划
      */
 
-    public static String updateBlackRecognitionPlan() {
-
+    public String updateBlackRecognitionPlan(String name) {
+        List<String> cameraIndexCodes = hkFaceGroupController.ResourceCameras();
+        List<String> faceGroupIndexCodes = hkFaceGroupController.queryFaceGroup(null, name);
         /**
          * STEP1：设置平台参数，根据实际情况,设置host appkey appsecret 三个参数.
          */
-        ArtemisConfig.host = "192.168.1.230:80"; // artemis网关服务器ip端口
-        ArtemisConfig.appKey = "28818522"; // 秘钥appkey
+        ArtemisConfig.host = "192.168.1.235:4430"; // artemis网关服务器ip端口
+        ArtemisConfig.appKey = "22641784"; // 秘钥appkey
         ArtemisConfig.appSecret = "xjzwt4mcjKUAiUoIsX6n";// 秘钥appSecret
         /**
          * STEP2：设置OpenAPI接口的上下文
@@ -306,7 +302,7 @@ public class HKRecognitionPlanController {
         String getApi = ARTEMIS_PATH + "/api/frs/v1/plan/recognition/black/update";
         Map<String, String> path = new HashMap<String, String>(2) {
             {
-                put("http://", getApi);//根据现场环境部署确认是http还是https
+                put("https://", getApi);//根据现场环境部署确认是http还是https
             }
         };
 
@@ -321,25 +317,14 @@ public class HKRecognitionPlanController {
 
         JSONObject jsonBody = new JSONObject();
         jsonBody.put("name", "这是一条重点人员识别计划");
-        jsonBody.put("indexCode", "7cc0adb2-a3c3-48fd-b432-718103e85c28");
-
-
-        List<String> faceGroupIndexCodes = new ArrayList<String>();
-        faceGroupIndexCodes.add("8ce19be05b5c4914b1e3c9eee3997eb2");
+        jsonBody.put("indexCode", "55e0fe3c-aa08-4046-907d-ff4d9b49e76f");
         jsonBody.put("faceGroupIndexCodes", faceGroupIndexCodes);
-
-        List<String> cameraIndexCodes = new ArrayList<String>();
-        cameraIndexCodes.add("c4023a78c83948f9b6b0fb76b0f3db71");
         jsonBody.put("cameraIndexCodes", cameraIndexCodes);
-
-        List<String> recognitionResourceIndexCodes = new ArrayList<String>();
+       /* List<String> recognitionResourceIndexCodes = new ArrayList<String>();
         recognitionResourceIndexCodes.add("867c73b5-56d8-43b7-8491-6481ab23c8be");
-        jsonBody.put("recognitionResourceIndexCodes", recognitionResourceIndexCodes);
-
-
+        jsonBody.put("recognitionResourceIndexCodes", recognitionResourceIndexCodes);*/
         jsonBody.put("description", "这是一个描述");
         jsonBody.put("threshold", 32);
-
         //时间数组，由时间对象组成
         List<Map<String, Object>> timeBlockList = new ArrayList<Map<String, Object>>();
         //时间对象，参数包扩时间范围和天数
@@ -348,12 +333,12 @@ public class HKRecognitionPlanController {
         List<Map<String, String>> timeRanges = new ArrayList<Map<String, String>>();
         Map<String, String> timeRange = new HashMap<String, String>();
         timeRange.put("startTime", "00:00");
-        timeRange.put("endTime", "12:00");
+        timeRange.put("endTime", "00:00");
         timeRanges.add(timeRange);
-        Map<String, String> timeRange2 = new HashMap<String, String>();
+      /*  Map<String, String> timeRange2 = new HashMap<String, String>();
         timeRange2.put("startTime", "12:00");
         timeRange2.put("endTime", "24:00");
-        timeRanges.add(timeRange2);
+        timeRanges.add(timeRange2);*/
 
         timeBlock.put("timeRange", timeRanges);
         timeBlock.put("dayOfWeek", "1");
@@ -366,11 +351,11 @@ public class HKRecognitionPlanController {
         Map<String, String> timeRange3 = new HashMap<String, String>();
         //时间范围参数，包括开始时间和结束时间
         timeRange3.put("startTime", "00:00");
-        timeRange3.put("endTime", "12:00");
+        timeRange3.put("endTime", "00:00");
         timeRanges2.add(timeRange3);
 
         timeBlock2.put("timeRange", timeRanges2);
-        timeBlock2.put("dayOfWeek", "2");
+        timeBlock2.put("dayOfWeek", "7");
         timeBlockList.add(timeBlock2);
 
         jsonBody.put("timeBlockList", timeBlockList);

@@ -14,7 +14,7 @@ import java.util.Date;
 @Data
 public class RealTimeVo {
 
-     private String installationLocation;
+     private String deviceName;
      private Date shootTime;
      private Integer snapNumber;
      private Integer peopleNumber;

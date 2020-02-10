@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mit.common.web.Result;
 import com.mit.community.entity.hik.AlarmDevice;
 import com.mit.community.entity.hik.AlarmMessage;
+import com.mit.community.entity.hik.EventInfoDTO;
+import com.mit.community.feign.EventFeign;
 import com.mit.community.service.com.mit.community.service.hik.AlarmDeviceService;
 import com.mit.community.service.com.mit.community.service.hik.AlarmMessageService;
 import io.swagger.annotations.Api;
@@ -39,6 +41,8 @@ public class AlarmDeviceController {
     private AlarmDeviceService alarmDeviceService;
     @Autowired
     private AlarmMessageService alarmMessageService;
+    @Autowired
+    private EventFeign eventFeign;
     @PostMapping("/saveOrUpdate")
     @ApiOperation("新增或者更新")
     public Result saveOrUpdate(AlarmDevice alarmDevice){
@@ -115,6 +119,21 @@ public class AlarmDeviceController {
             QueryWrapper<AlarmDevice> wrapper=new QueryWrapper<>();
             wrapper.eq("serial_number",serialNumber);
             AlarmDevice alarmDevice = alarmDeviceService.getOne(wrapper);
+            String communityCode = alarmDevice.getCommunityCode();
+            String communityName = alarmDevice.getCommunityName();
+            String zoneName = alarmDevice.getZoneName();
+            Integer zoneId = alarmDevice.getZoneId();
+            String deviceLocation = alarmDevice.getDeviceLocation();
+            String geographicCoordinates = alarmDevice.getGeographicCoordinates();
+            String longitude="";
+            String latitude="";
+            if (StringUtils.isNotBlank(geographicCoordinates)) {
+                String[] split = geographicCoordinates.split(",");
+                longitude=split[0];
+                latitude=split[1];
+            }
+            EventInfoDTO eventInfoDTO=new EventInfoDTO(communityCode,communityName,1,"ALARM_BOX_ALARM","",new Date(),latitude,deviceLocation,longitude,1,String.valueOf(zoneId),zoneName);
+            eventFeign.handing(eventInfoDTO);
             if (alarmDevice!=null) {
                 alarmMessage.setAlarmLocation(alarmDevice.getDeviceLocation());
                 alarmMessage.setDeviceName(alarmDevice.getDeviceName());

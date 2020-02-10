@@ -1,6 +1,6 @@
 package util;
 
-import sun.misc.BASE64Encoder;
+//import sun.misc.BASE64Encoder;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -18,7 +18,7 @@ public class TokenProccessor {
     * 生成Token
     * @return
     */
-   public String makeToken() {
+  /* public String makeToken() {
        String token = (System.currentTimeMillis() + new Random().nextInt(999999999)) + "";
         try {
            MessageDigest md = MessageDigest.getInstance("md5");
@@ -30,5 +30,5 @@ public class TokenProccessor {
            e.printStackTrace();
        }
         return null;
-   }
+   }*/
 }

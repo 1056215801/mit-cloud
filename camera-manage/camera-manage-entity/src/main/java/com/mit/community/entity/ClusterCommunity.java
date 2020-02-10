@@ -115,5 +115,22 @@ public class ClusterCommunity{
     @TableField(exist = false)
     private String password;
 
+    private String ip;
 
+    private String property;//物业
+
+    @TableField("property_phone")
+    private String propertyPhone;
+
+    @TableField("dixing_url")
+    private String diXingUrl;
+
+    @TableField("frontcover_url")
+    private String frontCoverUrl;
+
+    private String center;
+
+    private String right;
+
+    private String left;
 }

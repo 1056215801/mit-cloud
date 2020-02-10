@@ -6,10 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mit.common.web.Result;
 import com.mit.community.entity.CameraInfo;
 import com.mit.community.entity.ClusterCommunity;
-import com.mit.community.entity.hik.DeviceInfo;
-import com.mit.community.entity.hik.DataDictionary;
-import com.mit.community.entity.hik.SnapFaceDataHik;
-import com.mit.community.entity.hik.SnapVehicle;
+import com.mit.community.entity.hik.*;
 import com.mit.community.entity.hik.Vo.*;
 import com.mit.community.feign.CommunityFeign;
 import com.mit.community.feign.FileUploadFeign;
@@ -17,6 +14,7 @@ import com.mit.community.service.com.mit.community.service.hik.DeviceInfoService
 import com.mit.community.service.com.mit.community.service.hik.DataDictionaryService;
 import com.mit.community.service.com.mit.community.service.hik.SnapFaceDataHikService;
 import com.mit.community.service.com.mit.community.service.hik.SnapVehicleService;
+import com.mit.community.util.ImgCompass;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -29,8 +27,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -59,6 +59,8 @@ public class PlatformController {
     public DataDictionaryService dataDictionaryService;
     @Autowired
     public FileUploadFeign fileUploadFeign;
+    @Autowired
+    private HKFaceController hkFaceController;
     private static PlatformController platformController;
     @PostConstruct
     public void init(){
@@ -93,11 +95,16 @@ public class PlatformController {
     @ApiOperation("重要卡口感知数据")
     @ApiImplicitParam(name = "communityCodes",value = "小区编号",paramType = "query")
     public Result KeyBayonetPerception(String communityCodes){
-        String[] split = communityCodes.split(",");
-        List<String> asList = Arrays.asList(split);
-        List<PerceptionVo> list=snapFaceDataHikService.getSnapData(asList);
-
-
+        String communityCodeList=communityCodes;
+        List<Gate> gateList = communityFeign.getGateList(communityCodeList);
+        List<PerceptionVo> list=new ArrayList<>();
+        for (Gate gate : gateList) {
+            String camera = gate.getCamera();
+            List<String> asList = Arrays.asList(camera.split(","));
+            PerceptionVo perceptionVo=snapFaceDataHikService.getSnapData(asList);
+            perceptionVo.setInstallationLocation(gate.getLocation());
+            list.add(perceptionVo);
+        }
      return Result.succeed(list);
     }
     @PostMapping("/RealTimePerception")
@@ -142,7 +149,7 @@ public class PlatformController {
                                String jacketColor,String pantsColor,
                                Integer jacket,Integer pants,Integer bag,
                                Integer things,Integer hat,Integer mask,Integer hairstyle,
-                               Integer sex,Integer glass){
+                               Integer sex,Integer glass,Integer ride){
         if (StringUtils.isEmpty(communityCodes)) {
             return Result.succeed("查询成功");
         }
@@ -175,7 +182,7 @@ public class PlatformController {
             wrapper.orderByDesc("shoot_time");
             snapImageList = snapFaceDataHikService.getSnapImageList(startTime, endTime,
                     communityCodes, snapshotSite, pageNum, pageSize,jacketColor,
-                    pantsColor,jacket,pants,bag,things,hat,mask,hairstyle,sex,glass);
+                    pantsColor,jacket,pants,bag,things,hat,mask,hairstyle,sex,glass,ride);
             /*snapFaceDataHikIPage = snapFaceDataHikService.page(page, wrapper);
             List<SnapFaceDataHik> snapFaceDataHikList = snapFaceDataHikIPage.getRecords();
             List<DeviceInfo> deviceInfoList = deviceInfoService.list();
@@ -197,7 +204,7 @@ public class PlatformController {
     }
     @PostMapping("/getImageUrl")
     @ApiOperation("获取图片地址")
-    public Result getImageUrl(String base64Url,String serialNumber){
+    public Result getImageUrl(String base64Url,String serialNumber,String toBase64Byte){
         Result result = fileUploadFeign.base64(base64Url);
         String imageUrl = (String)result.getDatas();
         log.debug("获取抓拍imageUrl="+imageUrl);
@@ -209,9 +216,17 @@ public class PlatformController {
         DeviceInfo deviceInfo = deviceInfoService.getOne(wrapper);
         String installationLocation="";
         String communityCode="";
+        String geographicCoordinates="";
+        Integer zoneId=0;
+        String zoneName="";
+        String communityName ="";
         if (deviceInfo!=null) {
             installationLocation = deviceInfo.getInstallationLocation();
             communityCode = deviceInfo.getCommunityCode();
+            geographicCoordinates = deviceInfo.getGeographicCoordinates();
+            zoneId = deviceInfo.getZoneId();
+            zoneName = deviceInfo.getZoneName();
+            communityName = deviceInfo.getCommunityName();
         }
         SnapFaceDataHik snapFaceDataHik=new SnapFaceDataHik();
         snapFaceDataHik.setSnapshotSite(installationLocation);
@@ -232,12 +247,26 @@ public class PlatformController {
         snapFaceDataHik.setMask(0);
         snapFaceDataHik.setJacket(0);
         snapFaceDataHikService.save(snapFaceDataHik);
+        Integer id = snapFaceDataHik.getId();
+        List<String> list=new ArrayList<>();
+        list.add(snapFaceDataHik.getCommunityName()+"-"+"白名单");
+        list.add(snapFaceDataHik.getCommunityName()+"-"+"重点关注");
+        list.add(snapFaceDataHik.getCommunityName()+"-"+"特殊关爱");
+        list.add(snapFaceDataHik.getCommunityName()+"-"+"黑名单");
+        list.add(snapFaceDataHik.getCommunityName()+"-"+"陌生人");
+        list.add("布控-黑名单");
+       /* hkFaceController.pictureOneToManySearch(toBase64Byte,imageUrl,list,50,99,
+                20,1,communityCode,id,communityName,geographicCoordinates,zoneId,zoneName,installationLocation);*/
         return Result.succeed("获取成功");
     }
     @PostMapping("/getImageInfo")
     @ApiOperation("获取抓拍图片详情")
     public Result getImageInfo(Integer id){
         SnapImageVo snapImageVo=snapFaceDataHikService.getImageInfo(id);
+        String communityCode;
+        if (snapImageVo!=null) {
+          communityCode = snapImageVo.getCommunityCode();
+        }
         ClusterCommunity community = communityFeign.getClusterCommunityByCommunityCode(snapImageVo.getCommunityCode());
         if (community!=null) {
             snapImageVo.setDetailedAddress(community.getProvinceName()
@@ -247,7 +276,7 @@ public class PlatformController {
     }
     @PostMapping("/getJsonInfo")
     @ApiOperation("获取抓拍json数据")
-    public void getJsonInfo(String json,String base64Url){
+    public void getJsonInfo(String json,String base64Url,String serialNumber){
         Result result = fileUploadFeign.base64(base64Url);
         String imageUrl = (String)result.getDatas();
         SnapVehicle snapVehicle=new SnapVehicle();
@@ -257,14 +286,26 @@ public class PlatformController {
         if (jsonObject!=null){
             JSONArray captureResult = jsonObject.getJSONArray("CaptureResult");
             String deviceID = (String)jsonObject.get("deviceID");
-            snapFaceDataHik.setSerialNumber(deviceID);
+            snapFaceDataHik.setSerialNumber(serialNumber);
             QueryWrapper<DeviceInfo> wrapper=new QueryWrapper<>();
-            wrapper.eq("serial_number",deviceID);
+            wrapper.eq("serial_number",serialNumber);
             DeviceInfo deviceInfo = deviceInfoService.getOne(wrapper);
+            String installationLocation="";
+            String communityCode="";
+            String geographicCoordinates="";
+            Integer zoneId=0;
+            String zoneName="";
+            String communityName ="";
             if (deviceInfo!=null) {
-                snapFaceDataHik.setCommunityCode(deviceInfo.getCommunityCode());
-                snapFaceDataHik.setCommunityName(deviceInfo.getCommunityName());
-                snapFaceDataHik.setSnapshotSite(deviceInfo.getInstallationLocation());
+                installationLocation = deviceInfo.getInstallationLocation();
+                communityCode = deviceInfo.getCommunityCode();
+                geographicCoordinates = deviceInfo.getGeographicCoordinates();
+                zoneId = deviceInfo.getZoneId();
+                zoneName = deviceInfo.getZoneName();
+                communityName = deviceInfo.getCommunityName();
+                snapFaceDataHik.setCommunityCode(communityCode);
+                snapFaceDataHik.setCommunityName(communityName);
+                snapFaceDataHik.setSnapshotSite(installationLocation);
             }
             JSONObject object = captureResult.getJSONObject(0);
             if (object!=null){
@@ -303,33 +344,45 @@ public class PlatformController {
                     DataDictionary type = dataDictionaryService.getOne(queryWrapper);
                     if (type!=null) {
                         snapVehicle.setPlateType(type.getValueImplication());
+                    }else {
+                        snapVehicle.setPlateType("未知");
                     }
                     QueryWrapper<DataDictionary> queryWrapper2=new QueryWrapper<>();
                     queryWrapper2.eq("value",(String)plateColor.get("value"));
                     DataDictionary dataDictionary = dataDictionaryService.getOne(queryWrapper2);
                     if (dataDictionary!=null) {
                         snapVehicle.setPlateColor(dataDictionary.getValueImplication());
+                    }else {
+                        snapVehicle.setPlateColor("其他颜色");
                     }
                     QueryWrapper<DataDictionary> queryWrapper1=new QueryWrapper<>();
                     queryWrapper1.eq("value",(String)vehicleType.get("value"));
                     DataDictionary one = dataDictionaryService.getOne(queryWrapper1);
                     if (one!=null) {
                         snapVehicle.setVehicleType(one.getValueImplication());
+                    }else {
+                        snapVehicle.setVehicleType("未知");
                     }
                     QueryWrapper<DataDictionary> queryWrapper3=new QueryWrapper<>();
                     queryWrapper3.eq("value",(String)vehicleColor.get("value"));
                     DataDictionary dictionary = dataDictionaryService.getOne(queryWrapper3);
                     if (dictionary!=null) {
                         snapVehicle.setVehicleColor(dictionary.getValueImplication());
+                    }else {
+                        snapVehicle.setVehicleColor("未知");
                     }
                     if (plateNo!=null) {
                         snapVehicle.setPlateNo((String)plateNo.get("value"));
+                    }else {
+                        snapVehicle.setPlateNo("未知");
                     }
                     snapVehicle.setSerialNumber(deviceID);
                     snapVehicle.setShootTime(new Date());
-                    snapVehicle.setCommunityCode(deviceInfo.getCommunityCode());
+                    if (deviceInfo!=null) {
+                        snapVehicle.setCommunityCode(deviceInfo.getCommunityCode());
+                        snapVehicle.setSnapshotSite(deviceInfo.getInstallationLocation());
+                    }
                     snapVehicle.setImageUrl(imageUrl);
-                    snapVehicle.setSnapshotSite(deviceInfo.getInstallationLocation());
                     snapVehicleService.save(snapVehicle);
                 }
                 if (human!=null) {
@@ -427,6 +480,16 @@ public class PlatformController {
                         snapFaceDataHik.setRide(0);
                     }
                     snapFaceDataHikService.save(snapFaceDataHik);
+                    Integer id = snapFaceDataHik.getId();
+                    List<String> list=new ArrayList<>();
+                    list.add(snapFaceDataHik.getCommunityName()+"-"+"白名单");
+                    list.add(snapFaceDataHik.getCommunityName()+"-"+"重点关注");
+                    list.add(snapFaceDataHik.getCommunityName()+"-"+"特殊关爱");
+                    list.add(snapFaceDataHik.getCommunityName()+"-"+"黑名单");
+                    list.add(snapFaceDataHik.getCommunityName()+"-"+"陌生人");
+                    list.add("布控-黑名单");
+                /*    hkFaceController.pictureOneToManySearch(base64Url,imageUrl,list,50,99,
+                            20,1,communityCode,id,communityName,geographicCoordinates,zoneId,zoneName,installationLocation);*/
                 }
             }
 

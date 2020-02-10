@@ -4,8 +4,8 @@ logging:
     com.mit: debug
 spring:
   redis:
-    #database: 2
-    host: ${REDIS_HOST:127.0.0.1}
+    database: 0
+    host: ${REDIS_HOST:192.168.1.46}
     port: ${REDIS_PORT:6379}
     pool:
     max-active: 20
@@ -18,7 +18,7 @@ spring:
   datasource:
     druid:
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://127.0.0.1:3306/camera_manage?useUnicode=true&characterEncoding=UTF8&allowMultiQueries=true&serverTimezone=Asia/Shanghai
+      url: jdbc:mysql://192.168.1.130:3306/camera_manage?useUnicode=true&characterEncoding=UTF8&allowMultiQueries=true&serverTimezone=Asia/Shanghai
       username: root
       password: 123456
       #        name: test
@@ -93,7 +93,10 @@ spring:
       max-request-size: 10MB
   main:
     allow-bean-definition-overriding: true
-
+  cloud:
+    inetutils:
+      # 忽略指定网卡，支持正则表达式（这里使用正则表达式忽略所有虚拟机网卡）
+      ignoredInterfaces: ['VMware.*']
 # 服务跟踪
 sample:
   zipkin:
@@ -125,8 +128,8 @@ eureka:
 
   client:
     service-url:
-      # eureka-server的地址，这里开启了身份验证，下面用户名密码是Eureka服务端开启认证的用户密码120.24.163.79
-      defaultZone: http://${eureka-server-user:admin}:${eureka-server-password:mit123456}@${eureka-server-host:192.168.1.130}:${eureka-server-port:8761}/eureka/
+      # eureka-server的地址，这里开启了身份验证，下面用户名密码是Eureka服务端开启认证的用户密码172.117.249.10
+      defaultZone: http://${eureka-server-user:admin}:${eureka-server-password:mit123456}@${eureka-server-host:192.168.1.46}:${eureka-server-port:8761}/eureka/
 
 # 必须配置
 feign:
@@ -171,33 +174,33 @@ swagger:
     name: community
 #服务调用的配置。
 #
-auth:
-  # 会请求这个服务去验证哪些服务可以调用这个服务
-  serviceId: auth
-  # token的key
-  user:
-    token-header: Authorization
-  client:
-    # 服务的标识符，必须和数据库一致
-    id: web-community-wanli
-    # 服务的秘钥， 必须和数据库一致
-    secret: 123456
-    token-header: x-client-token
+#auth:
+#  # 会请求这个服务去验证哪些服务可以调用这个服务
+#  serviceId: auth
+#  # token的key
+#  user:
+#    token-header: Authorization
+#  client:
+#    # 服务的标识符，必须和数据库一致
+#    id: web-community-wanli
+#    # 服务的秘钥， 必须和数据库一致
+#    secret: 123456
+#    token-header: x-client-token
 
 #redis-cache 相关
-redis:
-  pool:
-    maxActive: 300
-    maxIdle: 100
-    maxWait: 1000
-  host: ${REDIS_HOST:127.0.0.1}
-  port:  ${REDIS_PORT:6379}
-  password:
-  timeout: 2000
-  # 服务或应用名
-  sysName: community
-  enable: true
-  database: 0
+#redis:
+#  pool:
+#    maxActive: 300
+#    maxIdle: 100
+#    maxWait: 1000
+#  host: ${REDIS_HOST:127.0.0.1}
+#  port:  ${REDIS_PORT:6379}
+#  password:
+#  timeout: 2000
+#  # 服务或应用名
+#  sysName: community
+#  enable: true
+#  database: 0
 
 management:
   endpoints:
@@ -230,29 +233,29 @@ mybatis-plus:
     db-column-underline: false
     refresh-mapper: true
   configuration:
-    map-underscore-to-camel-case: false
+    map-underscore-to-camel-case: true
     cache-enabled: true #配置的缓存的全局开关
     lazyLoadingEnabled: true #延时加载的开关
     multipleResultSetsEnabled: true #开启的话，延时加载一个属性时会加载该对象全部属性，否则按需加载属性
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #打印sql语句,调试用
 
 hik-manager:
-  ip: 192.168.1.230
-  port: 80
-  appkey: 26234840
-  appsecret: DCQUuXxOKd0pqZ3oa20y
+  ip: 192.168.1.235
+  port: 4430
+  appkey: 22641784
+  appsecret: fAff9NiLJMd4NL2Mt0zj
 
 
 security:
   oauth2:
-    ignored: /hkFace/**, /hkFaceGroup/**, /hkRecognitionPlan/**, /hkHardware/**, /device/**, /video/**, /wifi/**, /platform/**, /alarmDevice/**, /alarmmessage/**, /snapVehicle/**
+    ignored: /hkFace/**, /hkFaceGroup/**, /hkRecognitionPlan/**, /hkHardware/**, /device/**, /video/**, /wifi/**, /platform/**, /alarmDevice/**, /alarmmessage/**, /snapVehicle/**, /faceControl/**
 zuul:
   host:
     connect-timeout-millis: 10000
     socket-timeout-millis: 60000
 
 showDeviceUrl: http://23zh498270.wicp.vip/cloud-service/hkVideoDevice/showDevices
-localIpAdress: http://23zh498270.wicp.vip
+localIpAdress: http://172.117.249.11:8011
 #url: http://120.24.163.79:8765/cloud-service/platform/getImageUrl
 #jsonUrl: http://120.24.163.79:8765/cloud-service/platform/getJsonInfo
 #alarmUrl: http://120.24.163.79:8765/cloud-service/alarmDevice/getAlarmInfo
