@@ -28,7 +28,7 @@
         <commons-collections4.version>4.2</commons-collections4.version>
         <easyCaptcha.version>1.6.2</easyCaptcha.version>
         <easypoi.version>4.1.0</easypoi.version>
-        <fastjson.version>1.2.60</fastjson.version>
+        <fastjson.version>1.2.83</fastjson.version>
         <hutool.version>4.6.10</hutool.version>
         <jasypt.version>1.14</jasypt.version>
         <sharding-jdbc>2.0.3</sharding-jdbc>
